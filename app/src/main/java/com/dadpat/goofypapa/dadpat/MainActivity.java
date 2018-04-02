@@ -4,26 +4,32 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private BlueManager m_blueManager;
+    private Control m_control;
 
-    List<String> m_logList;
+    private List<String> m_logList;
     private TextView m_log;
 
-    Button m_btnDeviceManager;
-    Button m_btnDownLoadFile;
+    private Button m_btnDeviceManager;
+    private Button m_btnClear;
 
-    Handler m_handler;
+    private Handler m_handler;
 
-    FileManager m_fileManager;
+    private FileManager m_fileManager;
+
+    private LogListen m_logListen;
+
+    private static String sm_serviceHost = "http://www.dadpat.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,82 +41,82 @@ public class MainActivity extends AppCompatActivity {
 
         m_btnDeviceManager = (Button)findViewById(R.id.btn_deviceManager);
 
-        m_btnDownLoadFile = (Button)findViewById(R.id.btn_downLoad);
+        m_btnClear = (Button)findViewById(R.id.btn_clear);
 
         m_handler = new Handler() {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                m_btnDeviceManager.setText( m_blueManager.isConnectDevice() ? "断开连接" : "连接设备" );
+                m_btnDeviceManager.setText( m_control.isDeviceConnected() ? "断开连接" : "连接设备" );
             }
         };
 
-        m_fileManager = new FileManager(getApplicationContext(), new LogListen() {
+        m_logListen = new LogListen() {
             @Override
             public void onLog(String p_log) {
                 m_logList.add(p_log);
                 showLog();
             }
-        });
+        };
 
-        m_blueManager = new BlueManager( getApplicationContext(), new BlueManagerStateListen(){
+        m_fileManager = new FileManager(getApplicationContext(), m_logListen);
+
+        m_control = new Control(getApplicationContext(), new ControlListen() {
             @Override
-            public void onStateChange(int p_state) {
+            public void connectStateChanged(int p_connectState) {
                 Message t_message = new Message();
-                t_message.obj = "stateChanged";
+                t_message.obj = "" + p_connectState;
                 m_handler.sendMessage(t_message);
             }
+
             @Override
-            public void onLog( String p_str )
-            {
+            public void onLog(String p_str) {
                 m_logList.add(p_str);
                 showLog();
             }
-
-            @Override
-            public void onScan( String p_code )
-            {
-
-            }
-        } );
+        });
 
 
 
         m_btnDeviceManager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(m_blueManager.isConnectDevice())
+                if(m_control.isDeviceConnected())
                 {
-                    m_blueManager.desconnect();
+                    m_control.desConnectBlue();
                 }else {
-                    m_blueManager.connect();
+                    m_control.connectBlue();
                 }
             }
         });
 
-        m_btnDownLoadFile.setOnClickListener(new View.OnClickListener(){
+        m_btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                DownLoadFileListen t_downLoadImg =  new DownLoadFileListen( getApplicationContext(), new LogListen() {
-                    @Override
-                    public void onLog(String p_log) {
-                        m_logList.add(p_log);
-                        showLog();
-                    }
-                },
-                    "https://t11.baidu.com/it/u=2662104199,2409942689&fm=173&app=25&f=JPEG?w=580&h=290&s=DFAAAD4727D349D25AE4E1C203003033",
-                    getApplicationContext().getExternalFilesDir(null).getPath() + "/" + "haha.jpg" );
-
-                t_downLoadImg.start();
+                m_control.clearData();
             }
         });
+
+        Db_Animals t_db = new Db_Animals(getApplicationContext(), m_logListen);
+
+        m_logList.add("group list:");
+        showLog();
+
+        ArrayList<Integer> t_list = t_db.getAnimalGroupList();
+
+        for( int i = 0; i < t_list.size(); ++i )
+        {
+            m_logList.add("\tgroup: " + t_list.get(i));
+            showLog();
+        }
+
+//        t_db.insertTest();
+//        t_db.getListInfo();
     }
 
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
-
     }
 
 

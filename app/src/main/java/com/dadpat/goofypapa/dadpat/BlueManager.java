@@ -80,7 +80,22 @@ public class BlueManager extends Object {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                m_blueManagerStateListen.onLog((String)msg.obj);
+                String t_str = (String)msg.obj;
+                if( t_str.contains("卡号：") )
+                {
+                    String[] t_sp = t_str.split("：");
+                    switch (t_sp[1])
+                    {
+                        case "040C0220000400E759C3EB47":
+                            m_blueManagerStateListen.onScan("2");
+                            break;
+                        case "040C0220000400F761C5EB69":
+                            m_blueManagerStateListen.onScan("1");
+                        break;
+                    }
+                }
+
+                m_blueManagerStateListen.onLog(t_str);
             }
         };
 
@@ -320,7 +335,7 @@ public class BlueManager extends Object {
                 setBlueState(4);
 
                 byte[] t_buffer = new byte[256];
-                boolean t_stocketConnected = true;
+                boolean t_socketConnected = true;
                 while( m_socket != null )
                 {
                     try {
@@ -329,14 +344,14 @@ public class BlueManager extends Object {
                         message.obj = "卡号：" + byteArrayToHexStr( t_buffer, t_size );
                         m_handler.sendMessage(message);
                     }catch(IOException e){
-                        t_stocketConnected = false;
+                        t_socketConnected = false;
 
                         message = new Message();
                         message.obj = "读取信息失败" + e.toString() + "---" + m_socket.isConnected();
                         m_handler.sendMessage(message);
                     }
 
-                    if(t_stocketConnected)
+                    if(t_socketConnected)
                     {
                         continue;
                     }
