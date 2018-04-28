@@ -16,6 +16,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ import java.util.UUID;
 
 public class BlueManager extends Object {
     static String sm_blueName = "FSC-BT906";
+//    static String sm_blueName = "goofyPapa";
 
     private int m_blueState;
 
@@ -35,7 +37,7 @@ public class BlueManager extends Object {
 
     BroadcastReceiver m_broadcastReceiver;
 
-    BlueManagerStateListen m_blueManagerStateListen;
+    public ArrayList<BlueManagerStateListen> blueManagerStateListens;
 
     Context m_appContext;
 
@@ -53,14 +55,17 @@ public class BlueManager extends Object {
     {
         m_blueState = p_state;
 
-        m_blueManagerStateListen.onStateChange( m_blueState );
+        for ( BlueManagerStateListen item : blueManagerStateListens)
+        {
+            item.onStateChange(m_blueState);
+        }
 
         Log.d("BlueState", "" + m_blueState);
 
         if( p_state != 0 ) connect();
     }
 
-    public BlueManager( Context p_context, BlueManagerStateListen p_blueManagerStateListen )
+    public BlueManager( Context p_context )
     {
 
         //初始化成员
@@ -69,33 +74,41 @@ public class BlueManager extends Object {
         m_socket = null;
         m_inStream = null;
 
-        m_appContext = p_context;
+        blueManagerStateListens = new ArrayList<>();
 
-        if( p_blueManagerStateListen != null )
-        {
-            m_blueManagerStateListen = p_blueManagerStateListen;
-        }
+        m_appContext = p_context;
 
         m_handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 String t_str = (String)msg.obj;
+                String t_cardId = "";
+
                 if( t_str.contains("卡号：") )
                 {
                     String[] t_sp = t_str.split("：");
                     switch (t_sp[1])
                     {
                         case "040C0220000400E759C3EB47":
-                            m_blueManagerStateListen.onScan("2");
+                            t_cardId = "2";
                             break;
                         case "040C0220000400F761C5EB69":
-                            m_blueManagerStateListen.onScan("1");
+                            t_cardId = "1";
                         break;
+                        default:
+                            t_cardId = t_sp[1];
+                        break;
+                    }
+
+                    for(BlueManagerStateListen item : blueManagerStateListens)
+                    {
+                        item.onScan(t_cardId);
                     }
                 }
 
-                m_blueManagerStateListen.onLog(t_str);
+
+                Log.d("DEBUG", t_str);
             }
         };
 
@@ -105,7 +118,7 @@ public class BlueManager extends Object {
                 String t_action = intent.getAction();
                 if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(t_action)) {
                     Log.d("BroadcastReceiver", "ACTION_DISCOVERY_STARTED");
-                    m_blueManagerStateListen.onLog("开始扫描设备");
+                    Log.d("DEBUG", "开始扫描设备");
                     //开始扫描设备
                 } else if (BluetoothDevice.ACTION_FOUND.equals(t_action)) {
                     Log.d("BroadcastReceiver", "ACTION_FOUND");
@@ -119,15 +132,15 @@ public class BlueManager extends Object {
                     if( t_name == null ) return;
 
                     try {
-                        m_blueManagerStateListen.onLog("--：" + t_device.getName() + "--" + t_device.getAddress());
+                        Log.d("DEBUG", "--：" + t_device.getName() + "--" + t_device.getAddress());
                         if ( t_device.getBondState() != BluetoothDevice.BOND_BONDED && t_device.getName().equals(sm_blueName)) {
                             m_blueToolThAdapter.cancelDiscovery();
-                            m_blueManagerStateListen.onLog("找到未配对蓝牙：" + t_device.getName() + "--" + t_device.getAddress());
+                            Log.d("DEBUG", "找到未配对蓝牙：" + t_device.getName() + "--" + t_device.getAddress());
                             m_bluetoothDevice = t_device;
                             setBlueState(2);
                         }
                     }catch (Exception e){
-                        m_blueManagerStateListen.onLog("检测到异常" + e.toString());
+                        Log.d("DEBUG", "检测到异常" + e.toString());
                     }
                     //找到设备
                 } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(t_action)) {
@@ -136,25 +149,25 @@ public class BlueManager extends Object {
                     BluetoothDevice t_device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     switch (t_device.getBondState()) {
                         case BluetoothDevice.BOND_BONDING://正在配对
-                            m_blueManagerStateListen.onLog( "正在配对......" );
+                            Log.d("DEBUG",  "正在配对......" );
                             break;
                         case BluetoothDevice.BOND_BONDED://配对结束
                             setBlueState(3);
-                            m_blueManagerStateListen.onLog( "完成配对" );
+                            Log.d("DEBUG",  "完成配对" );
 
                             break;
                         case BluetoothDevice.BOND_NONE://取消配对/未配对
-                            m_blueManagerStateListen.onLog("取消配对" );
+                            Log.d("DEBUG", "取消配对" );
                         default:
                             break;
                     }
                     //配对状态
                 } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(t_action)) {
                     Log.d("BroadcastReceiver", "ACTION_DISCOVERY_FINISHED");
-                    m_blueManagerStateListen.onLog("扫描设备结束");
+                    Log.d("DEBUG", "扫描设备结束");
 
                     if( m_bluetoothDevice == null ){
-                        m_blueManagerStateListen.onLog("没有找到设备");
+                        Log.d("DEBUG", "没有找到设备");
                     }
                     //扫描结束
                 } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(t_action)) {
@@ -163,19 +176,19 @@ public class BlueManager extends Object {
                     int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                     switch (state) {
                         case BluetoothAdapter.STATE_TURNING_ON:
-                            m_blueManagerStateListen.onLog("正在打开蓝牙");
+                            Log.d("DEBUG", "正在打开蓝牙");
                             break;
                         case BluetoothAdapter.STATE_ON:
                             setBlueState(1);
-                            m_blueManagerStateListen.onLog("蓝牙已打开");
+                            Log.d("DEBUG", "蓝牙已打开");
                             break;
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             setBlueState(0);
-                            m_blueManagerStateListen.onLog("正在关闭蓝牙");
+                            Log.d("DEBUG", "正在关闭蓝牙");
                             break;
                         case BluetoothAdapter.STATE_OFF:
                             setBlueState(0);
-                            m_blueManagerStateListen.onLog("蓝牙已关闭");
+                            Log.d("DEBUG", "蓝牙已关闭");
                             break;
                     }
                 }
@@ -264,7 +277,7 @@ public class BlueManager extends Object {
             for (BluetoothDevice device : pairedDevices) {
                 if (device.getName().equals(sm_blueName)) {
                     m_bluetoothDevice = device;
-                    m_blueManagerStateListen.onLog( "已配对设备:" + m_bluetoothDevice.getName() + ", " + m_bluetoothDevice.getAddress() );
+                    Log.d("DEBUG", "已配对设备:" + m_bluetoothDevice.getName() + ", " + m_bluetoothDevice.getAddress() );
                     setBlueState(3);
                     return;
                 }
@@ -408,14 +421,16 @@ public class BlueManager extends Object {
             Method connectMethod =BluetoothA2dp.class.getMethod("connect",
                     BluetoothDevice.class);
             connectMethod.invoke(m_bluetoothA2dp, m_bluetoothDevice);
-            m_blueManagerStateListen.onLog("连接a2dp成功");
+            Log.d("DEBUG", "连接a2dp成功");
 
             //连接成功
-            setBlueState(100);
+            if( m_blueState != 0 ) {
+                setBlueState(100);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
-            m_blueManagerStateListen.onLog("连接a2dp失败" + e.toString());
+            Log.d("DEBUG", "连接a2dp失败" + e.toString());
             setBlueState(0);
         }
     }
@@ -428,7 +443,7 @@ public class BlueManager extends Object {
             connectMethod.invoke(m_bluetoothA2dp, device, priority);
         } catch (Exception e) {
             e.printStackTrace();
-            m_blueManagerStateListen.onLog("设置优先级失败" + e.toString());
+            Log.d("DEBUG", "设置优先级失败" + e.toString());
         }
     }
 
@@ -439,7 +454,7 @@ public class BlueManager extends Object {
             m_socket.close();
         } catch (IOException e){
 
-            m_blueManagerStateListen.onLog("----cancel listen fiald----");
+            Log.d("DEBUG", "----cancel listen fiald----");
         }
     }
 
@@ -480,7 +495,7 @@ public class BlueManager extends Object {
                     method.setAccessible(true);
                     boolean isConnected = (boolean) isConnectedMethod.invoke(device, (Object[]) null);
                     if(isConnected && device.getName().equals(sm_blueName)){
-                        m_blueManagerStateListen.onLog("connected:"+device.getName());
+                        Log.d("DEBUG", "connected:"+device.getName());
                         return true;
                     }
                 }

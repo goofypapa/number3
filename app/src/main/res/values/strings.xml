@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">DadPat</string>
+    <string name="app_name">爸爸猜猜</string>
+    <string name="animals">动物世界</string>
+    <string name="buy">点击购买此套卡片</string>
 </resources>

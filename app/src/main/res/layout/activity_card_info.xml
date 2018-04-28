@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CardInfoActivity">
+
+    <ImageView
+        android:id="@+id/imageView18"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@color/goofyPapaGreen" />
+
+    <ImageView
+        android:id="@+id/img_back"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="23dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/goback" />
+
+    <ImageView
+        android:id="@+id/iv_groupCover"
+        android:layout_width="148dp"
+        android:layout_height="148dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_back"
+        app:srcCompat="@mipmap/card_group_cover_loding" />
+
+    <TextView
+        android:id="@+id/tv_Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:layout_marginTop="20dp"
+        android:text="内容简介"
+        android:textColor="@color/goofyPapaWhite"
+        android:textSize="22dp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/iv_groupCover"
+        app:layout_constraintTop_toTopOf="@+id/iv_groupCover" />
+
+    <TextView
+        android:id="@+id/tv_groupInfo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="7dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:textColor="@color/goofyPapaWhite"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_groupCover"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/iv_groupCover"
+        app:layout_constraintTop_toBottomOf="@+id/tv_Title" />
+
+    <ImageView
+        android:id="@+id/imageView19"
+        android:layout_width="120dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="28dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iv_groupCover"
+        app:srcCompat="@color/goofyPapaWhite" />
+
+    <ImageView
+        android:id="@+id/imageView20"
+        android:layout_width="120dp"
+        android:layout_height="1dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="28dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iv_groupCover"
+        app:srcCompat="@color/goofyPapaWhite" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:text="卡片预览"
+        android:textColor="@color/goofyPapaWhite"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/imageView20"
+        app:layout_constraintStart_toEndOf="@+id/imageView19"
+        app:layout_constraintTop_toBottomOf="@+id/iv_groupCover" />
+
+    <TableLayout
+        android:id="@+id/tl_cardList"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView10">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/imageView8"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:srcCompat="@mipmap/list_smallpic_animal1" />
+
+            <ImageView
+                android:id="@+id/imageView23"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:srcCompat="@mipmap/list_smallpic_animal1" />
+
+            <ImageView
+                android:id="@+id/imageView22"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:srcCompat="@mipmap/list_smallpic_animal1" />
+
+            <ImageView
+                android:id="@+id/imageView21"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:srcCompat="@mipmap/list_smallpic_animal1" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </TableLayout>
+
+    <ImageView
+        android:id="@+id/imageView9"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@color/goofyPapaYellow" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/buy"
+        android:textColor="@color/goofyPapaWhite"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/imageView9"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/imageView9" />
+
+</android.support.constraint.ConstraintLayout>

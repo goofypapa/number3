@@ -16,17 +16,14 @@ public class DownLoadFile {
 
     private String m_url, m_path;
 
-    private Context m_context;
-
     private Object m_obj;
 
     private DownLoadFileListen m_downloadFileListen;
 
-    DownLoadFile(Context p_context, DownLoadFileListen p_downloadFileListen, String p_url, String p_path, Object p_obj )
+    DownLoadFile( DownLoadFileListen p_downloadFileListen, String p_url, String p_path, Object p_obj )
     {
         m_url = p_url;
         m_path = p_path;
-        m_context = p_context;
         m_obj = p_obj;
 
         m_downloadFileListen = p_downloadFileListen;
@@ -93,12 +90,12 @@ public class DownLoadFile {
                         t_os.write(t_bs, 0, t_readLen);
                     }
 
+                    t_os.close();
+                    t_is.close();
+
                     t_message = new Message();
                     t_message.obj = "end";
                     m_handler.sendMessage(t_message);
-
-                    t_os.close();
-                    t_is.close();
 
                 }catch (Exception e){
                     t_message = new Message();
@@ -108,4 +105,5 @@ public class DownLoadFile {
             }
         }).start();
     }
+
 }

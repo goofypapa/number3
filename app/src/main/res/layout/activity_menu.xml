@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MenuActivity">
+
+    <ImageView
+        android:id="@+id/imageView17"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:color/holo_green_dark" />
+
+    <ImageView
+        android:id="@+id/img_bg"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@mipmap/home_bj" />
+
+    <ImageView
+        android:id="@+id/img_back"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="23dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/goback" />
+
+    <ImageView
+        android:id="@+id/img_logo"
+        android:layout_width="135dp"
+        android:layout_height="41dp"
+        android:layout_marginTop="21dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/img_bg"
+        app:srcCompat="@mipmap/home_logo" />
+
+    <ImageView
+        android:id="@+id/img_foor"
+        android:layout_width="423dp"
+        android:layout_height="169dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.48"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@mipmap/home_pic_bellow" />
+
+    <ImageView
+        android:id="@+id/img_blue"
+        android:layout_width="30dp"
+        android:layout_height="42dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="14dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_icon_conect_no" />
+
+    <ImageView
+        android:id="@+id/img_menu_animal"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="97dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_animal" />
+
+    <ImageView
+        android:id="@+id/imageView11"
+        android:layout_width="94dp"
+        android:layout_height="94dp"
+        android:layout_marginStart="140dp"
+        android:layout_marginTop="149dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_song" />
+
+    <ImageView
+        android:id="@+id/imageView12"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginStart="234dp"
+        android:layout_marginTop="176dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_english" />
+
+    <ImageView
+        android:id="@+id/imageView13"
+        android:layout_width="104dp"
+        android:layout_height="104dp"
+        android:layout_marginStart="68dp"
+        android:layout_marginTop="229dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_map" />
+
+    <ImageView
+        android:id="@+id/imageView14"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="105dp"
+        android:layout_marginTop="354dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_read" />
+
+    <ImageView
+        android:id="@+id/imageView15"
+        android:layout_width="95dp"
+        android:layout_height="95dp"
+        android:layout_marginStart="177dp"
+        android:layout_marginTop="299dp"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/home_style_pic_plant" />
+
+</android.support.constraint.ConstraintLayout>

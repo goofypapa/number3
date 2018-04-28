@@ -15,8 +15,7 @@ import java.net.URLConnection;
  */
 
 public interface DownLoadFileListen {
-    public void onLog( String p_log );
-    public void onStartDownLoad();
-    public void onEndDownload( boolean p_state, Object p_obj );
-    public void onUpdateDownloadRate( float p_rate );
+    void onStartDownLoad();
+    void onEndDownload( boolean p_state, Object p_obj );
+    void onUpdateDownloadRate( float p_rate );
 }

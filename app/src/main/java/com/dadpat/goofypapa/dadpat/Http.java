@@ -1,6 +1,9 @@
 package com.dadpat.goofypapa.dadpat;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -55,7 +58,7 @@ public class Http {
                         m_result += t_line;
                     }
 
-                    m_httpListen.callBack( m_result );
+                    m_httpListen.callBack( m_url, m_result );
 
                 }catch (Exception e){
 
@@ -64,4 +67,28 @@ public class Http {
             }
         }).start();
     }
+
+//    public static void getBitmap(final String p_url, ImageView p_imageView, GetBitmapListen p_getBitmapListen)
+//    {
+//        final Bitmap[] t_result = {null};
+//
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try{
+//
+//                    URL conn = new URL(p_url);
+//                    InputStream in = conn.openConnection().getInputStream();
+//                    t_result[0] = BitmapFactory.decodeStream(in);
+//                    in.close();
+//
+//                }catch (Exception e){
+//
+//                }
+//            }
+//        }).start();
+//
+//        p_imageView.setImageBitmap(t_result[0]);
+//
+//    }
 }

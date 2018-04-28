@@ -5,7 +5,6 @@ package com.dadpat.goofypapa.dadpat;
  */
 
 public interface BlueManagerStateListen {
-    public void onStateChange( int p_state );
-    public void onScan( String p_code );
-    public void onLog( String p_str );
+    void onStateChange( int p_state );
+    void onScan( String p_code );
 }
