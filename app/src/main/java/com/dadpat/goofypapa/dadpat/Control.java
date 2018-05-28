@@ -26,12 +26,12 @@ public class Control {
 
     private Handler m_handler;
 
-    private Db_Animals m_db_animals;
+    private DataBase m_dataBase;
 
-    private ArrayList<AnimalAudio> m_downloadQueue;
-    private ArrayList<ImageInfo> m_ImageDownloadQueue;
+    private ArrayList<DBAudioInfo> m_downloadQueue;
+    private ArrayList<DBImageInfo> m_ImageDownloadQueue;
 
-    ArrayList<BatchInfo> m_batches = null;
+    ArrayList<DBBatchInfo> m_batches = null;
 
     public String m_audioPath;
     public String m_imagePath;
@@ -71,12 +71,12 @@ public class Control {
                 if( t_cmd == "download" )
                 {
                     downloadFiles();
-                    UpdateActivity.m_instance.download();
+                    UIUpdateActivity.m_instance.download();
                 }
 
-                else if( t_cmd == "tryUpdateAnimal" )
+                else if( t_cmd == "tryUpdate" )
                 {
-                    tryUpdateAnimal();
+                    tryUpdate();
                 }
 
                 Log.d("DEBUG", (String)msg.obj);
@@ -104,9 +104,9 @@ public class Control {
             }
         } );
 
-        m_db_animals = new Db_Animals( m_context );
+        m_dataBase = new DataBase( m_context );
 
-//        m_db_animals.clearAnimals();
+//        m_dataBase.clearDataBase();
 
         m_downloadQueue = new ArrayList<>();
         m_ImageDownloadQueue = new ArrayList<>();
@@ -127,18 +127,16 @@ public class Control {
 
     public void tryUpdate()
     {
-        ArrayList<String> t_list = m_db_animals.getAnimalGroupList();
+        ArrayList<DBBatchInfo> t_list = m_dataBase.getBatchList();
         for( int i = 0; i < t_list.size(); ++i )
         {
-            String t_url = sm_serviceHost + "/resource/card/list.do?batchId=" + t_list.get(i);
-            UpdateActivity.m_instance.m_listenQueue.add(t_url);
+            String t_url = sm_serviceHost + "/resource/card/list.do?batchId=" + t_list.get(i).m_id;
+            UIUpdateActivity.m_instance.m_listenQueue.add(t_url);
             new Http(m_context, t_url, new HttpListen() {
                 @Override
                 public void callBack(String p_url, String p_str) {
 
-                    ArrayList<Animal> t_localAnimals = m_db_animals.getListInfo();
-
-                    int t_deleteAnimalCount = 0, t_deleteAudioCount = 0;
+                    ArrayList<DBCardInfo> t_localDBCardInfos = null;
 
                     try {
                         JSONObject t_jsonObject = new JSONObject(p_str);
@@ -150,182 +148,231 @@ public class Control {
 
                             for( int i = 0; i < t_data.length(); ++i )
                             {
-                                JSONObject t_animalObject = t_data.getJSONObject(i);
+                                JSONObject t_cardObject = t_data.getJSONObject(i);
 
-                                int t_rfid = t_animalObject.getInt("rfId");
-                                String t_resourceId = t_animalObject.getString("resourceId");
-                                String t_ownerId = t_animalObject.getString("ownerId");
+                                int t_rfid = t_cardObject.getInt("rfId");
+                                String t_resourceId = t_cardObject.getString("resourceId");
+                                String t_ownerId = t_cardObject.getString("ownerId");
 
-
-                                ArrayList<AnimalAudio> t_animalAudios = new ArrayList<>();
-
-                                JSONArray t_musics = t_animalObject.getJSONArray("audios");
-                                for( int k = 0; k < t_musics.length(); ++k ){
-                                    String t_url = t_musics.getJSONObject(k).getString("attUrl");
-                                    String t_md5 = t_musics.getJSONObject(k).getString("md5");
-
-                                    t_animalAudios.add( new AnimalAudio( t_rfid, t_resourceId, t_url, t_md5, 1 ) );
+                                if( t_localDBCardInfos == null ){
+                                    t_localDBCardInfos = m_dataBase.getCardListByBatche( t_ownerId );
                                 }
 
-                                if( t_animalObject.getString("pronAudio") != "null" ) {
 
-                                    JSONObject t_pronAudios = t_animalObject.getJSONObject("pronAudio");
-                                    if (t_pronAudios != null && t_pronAudios.getString("attUrl") != "") {
-                                        String t_url = t_pronAudios.getString("attUrl");
-                                        String t_md5 = t_pronAudios.getString("md5");
-                                        t_animalAudios.add(new AnimalAudio(t_rfid, t_resourceId, t_url, t_md5, 2));
+                                ArrayList<DBAudioInfo> t_DBAudioInfos = new ArrayList<>();
+
+                                if( t_cardObject.getString("audios") != "null" ) {
+                                    JSONArray t_musics = t_cardObject.getJSONArray("audios");
+                                    for (int k = 0; k < t_musics.length(); ++k) {
+                                        String t_url = t_musics.getJSONObject(k).getString("attUrl");
+                                        String t_md5 = t_musics.getJSONObject(k).getString("md5");
+
+                                        t_DBAudioInfos.add(new DBAudioInfo(t_md5, t_rfid, t_url, 1));
                                     }
                                 }
 
-                                if( t_animalObject.getString("descAudio") != "null" ) {
-                                    JSONObject t_descAudios = t_animalObject.getJSONObject("descAudio");
+                                if( t_cardObject.getString("pronAudio") != "null" ) {
+
+                                    JSONObject t_pronAudios = t_cardObject.getJSONObject("pronAudio");
+                                    if (t_pronAudios != null && t_pronAudios.getString("attUrl") != "") {
+                                        String t_url = t_pronAudios.getString("attUrl");
+                                        String t_md5 = t_pronAudios.getString("md5");
+                                        t_DBAudioInfos.add(new DBAudioInfo( t_md5, t_rfid, t_url, 2));
+                                    }
+                                }
+
+                                if( t_cardObject.getString("descAudio") != "null" ) {
+                                    JSONObject t_descAudios = t_cardObject.getJSONObject("descAudio");
                                     if( t_descAudios != null && t_descAudios.getString("attUrl") != "" )
                                     {
                                         String t_url = t_descAudios.getString("attUrl");
                                         String t_md5 = t_descAudios.getString("md5");
-                                        t_animalAudios.add(new AnimalAudio(t_rfid, t_resourceId, t_url, t_md5, 2));
+                                        t_DBAudioInfos.add(new DBAudioInfo( t_md5, t_rfid, t_url, 2 ));
                                     }
                                 }
 
-                                Animal t_animal = new Animal( t_rfid, t_resourceId, t_ownerId, "", t_animalAudios );
+                                String t_coverImageMD5 = "";
+                                String t_coverImageUrl = "";
 
-                                Animal t_oldAnimal = null;
-                                for( int k = 0; k < t_localAnimals.size(); ++k )
+                                String t_lineDrawingMD5 = "";
+                                String t_lineDrawingUrl = "";
+
+                                if( t_cardObject.getString("coverImage") != "null" ){
+                                    JSONObject t_coverImage = t_cardObject.getJSONObject("coverImage");
+                                    t_coverImageMD5 = t_coverImage.getString("md5");
+                                    t_coverImageUrl = t_coverImage.getString("attUrl");
+                                }
+
+                                if( t_cardObject.getString("handDrawImage") != "null" ){
+                                    JSONObject t_lineDrawing = t_cardObject.getJSONObject("handDrawImage");
+                                    t_lineDrawingMD5 = t_lineDrawing.getString("md5");
+                                    t_lineDrawingUrl = t_lineDrawing.getString("attUrl");
+                                }
+
+
+
+                                DBCardInfo t_DB_card = new DBCardInfo( t_rfid, t_resourceId, t_ownerId, t_coverImageMD5, t_lineDrawingMD5, false, t_DBAudioInfos);
+
+                                DBCardInfo t_oldDBCardInfo = null;
+                                for(int k = 0; k < t_localDBCardInfos.size(); ++k )
                                 {
-                                    if( t_localAnimals.get(k).m_cardNumber == t_rfid )
+                                    if( t_localDBCardInfos.get(k).m_cardNumber == t_rfid )
                                     {
-                                        t_oldAnimal = t_localAnimals.get(k);
+                                        t_oldDBCardInfo = t_localDBCardInfos.get(k);
                                         break;
                                     }
                                 }
 
-                                if( t_oldAnimal != null )
+                                if( t_oldDBCardInfo != null )
                                 {
-                                    t_localAnimals.remove(t_oldAnimal);
+                                    t_localDBCardInfos.remove(t_oldDBCardInfo);
 
-                                    if( !t_oldAnimal.m_serviceId.equals(t_resourceId) )
+
+                                    if( t_DB_card.m_group.equals(t_oldDBCardInfo.m_group) || t_DB_card.m_serviceId.equals(t_oldDBCardInfo.m_serviceId) || !t_DB_card.m_coverImage.equals(t_oldDBCardInfo.m_coverImage) || !t_DB_card.m_lineDrawing.equals(t_oldDBCardInfo.m_lineDrawing) )
                                     {
-                                        deleteDir(m_audioPath + t_oldAnimal.m_serviceId );
-                                        m_downloadQueue.addAll(t_animalAudios);
+                                        t_DB_card.m_activation = t_oldDBCardInfo.m_activation;
+                                        m_dataBase.update(t_DB_card);
                                     }
 
-                                    if( t_animal.m_group.equals(t_oldAnimal.m_group) || t_animal.m_serviceId.equals(t_oldAnimal.m_serviceId) || !t_animal.m_coverImage.equals(t_oldAnimal.m_coverImage) )
+                                    if( !t_DB_card.m_coverImage.equals(t_oldDBCardInfo.m_coverImage) )
                                     {
-                                        m_db_animals.update(t_animal);
-                                    }
+                                        DBImageInfo t_image = m_dataBase.getImage(t_oldDBCardInfo.m_coverImage);
 
-                                    for( int k = 0; k < t_animalAudios.size(); ++k )
-                                    {
-                                        AnimalAudio t_animalAudio = t_animalAudios.get(k);
-
-                                        AnimalAudio t_oldAnimalAudio = null;
-                                        for(int n = 0; n < t_oldAnimal.m_musicPaths.size(); ++n)
+                                        if( t_image != null )
                                         {
-                                            if( t_oldAnimal.m_musicPaths.get(n).url.equals( t_animalAudio.url ) )
+                                            File t_file = new File(t_image.m_path );
+                                            if( t_file.exists() )
                                             {
-                                                t_oldAnimalAudio = t_oldAnimal.m_musicPaths.get(n);
+                                                t_file.delete();
                                             }
+
+                                            m_dataBase.delete(t_image);
                                         }
+                                    }
 
-                                        if( t_oldAnimalAudio == null )
+                                    if( !t_DB_card.m_lineDrawing.equals(t_oldDBCardInfo.m_lineDrawing) )
+                                    {
+                                        DBImageInfo t_image = m_dataBase.getImage(t_oldDBCardInfo.m_lineDrawing);
+
+                                        if( t_image != null )
                                         {
-                                            m_downloadQueue.add(t_animalAudio);
-
-                                            Message t_message = new Message();
-                                            t_message.obj = "null-download: " + t_animalAudio.url;
-                                            m_handler.sendMessage(t_message);
-                                        }else
-                                        {
-
-                                            if( !t_oldAnimalAudio.md5.equals( t_animalAudio.md5 ) )
+                                            File t_file = new File(t_image.m_path );
+                                            if( t_file.exists() )
                                             {
-                                                m_downloadQueue.add(t_animalAudio);
+                                                t_file.delete();
+                                            }
+
+                                            m_dataBase.delete(t_image);
+                                        }
+                                    }
+
+
+                                    //如果没有激活 不更新音频文件
+                                    if( t_oldDBCardInfo.m_activation ) {
+
+                                        for (int k = 0; k < t_DBAudioInfos.size(); ++k) {
+                                            DBAudioInfo t_DBAudioInfo = t_DBAudioInfos.get(k);
+
+                                            DBAudioInfo t_oldDBAudioInfo = null;
+                                            for (int n = 0; n < t_oldDBCardInfo.m_musicPaths.size(); ++n) {
+                                                if (t_oldDBCardInfo.m_musicPaths.get(n).md5.equals(t_DBAudioInfo.md5)) {
+                                                    t_oldDBAudioInfo = t_oldDBCardInfo.m_musicPaths.get(n);
+                                                }
+                                            }
+
+                                            if (t_oldDBAudioInfo == null) {
+                                                m_downloadQueue.add(t_DBAudioInfo);
 
                                                 Message t_message = new Message();
-                                                t_message.obj = "md5-download: " + t_animalAudio.url + ", old: " + t_oldAnimalAudio.md5 + ", new: " + t_animalAudio.md5 ;
+                                                t_message.obj = "null-download: " + t_DBAudioInfo.path;
                                                 m_handler.sendMessage(t_message);
-                                            }
+                                            } else {
+                                                if (t_oldDBAudioInfo.audioType != t_oldDBAudioInfo.audioType) {
+                                                    m_dataBase.update(t_DBAudioInfo);
+                                                }
 
-                                            if( !t_oldAnimalAudio.md5.equals( t_animalAudio.md5 ) || t_oldAnimalAudio.audioType != t_oldAnimalAudio.audioType )
-                                            {
-                                                t_animalAudio.id = t_oldAnimalAudio.id;
-                                                m_db_animals.update(t_animalAudio);
+                                                t_oldDBCardInfo.m_musicPaths.remove(t_oldDBAudioInfo);
                                             }
-
-                                            t_oldAnimal.m_musicPaths.remove(t_oldAnimalAudio);
                                         }
-                                    }
 
 
-                                    //删除本地多余的音频文件
-                                    for(int k = 0; k < t_oldAnimal.m_musicPaths.size(); ++k)
-                                    {
-                                        AnimalAudio t_oldAnimalAudio = t_oldAnimal.m_musicPaths.get(k);
-                                        m_db_animals.delete(t_oldAnimalAudio);
+                                        //删除本地多余的音频文件
+                                        for (int k = 0; k < t_oldDBCardInfo.m_musicPaths.size(); ++k) {
+                                            DBAudioInfo t_oldDBAudioInfo = t_oldDBCardInfo.m_musicPaths.get(k);
+                                            m_dataBase.delete(t_oldDBAudioInfo);
 
-                                        //删除文件
+                                            //删除文件
 
-                                        String t_dir = m_audioPath + t_oldAnimalAudio.dir;
-                                        String[] t_list = t_oldAnimalAudio.url.split("/");
-                                        String t_fileName = t_list[t_list.length - 1];
+                                            File t_file = new File(t_oldDBAudioInfo.path);
 
-                                        File t_file = new File(t_dir + "/" + t_fileName );
-
-                                        if( t_file.exists() )
-                                        {
-                                            t_file.delete();
+                                            if (t_file.exists()) {
+                                                t_file.delete();
+                                            }
                                         }
                                     }
 
                                 }else{
-                                    m_db_animals.insert( t_animal );
-                                    m_downloadQueue.addAll(t_animalAudios);
+                                    m_dataBase.insert(t_DB_card);
+                                }
+
+                                //下载新的封面
+                                if( t_coverImageMD5 != "" && t_coverImageUrl != "" && m_dataBase.getImage(t_coverImageMD5) == null )
+                                {
+                                    m_ImageDownloadQueue.add( new DBImageInfo( t_coverImageMD5, t_coverImageUrl ) );
+                                }
+
+                                //下载新的简笔画
+                                if( t_lineDrawingMD5 != "" && t_lineDrawingUrl != "" && m_dataBase.getImage(t_lineDrawingMD5) == null )
+                                {
+                                    m_ImageDownloadQueue.add( new DBImageInfo( t_lineDrawingMD5, t_lineDrawingUrl ) );
                                 }
                             }
 
                             //删除多余卡片信息
 
-                            for (int i = 0; i < t_localAnimals.size(); ++i) {
-                                Animal t_oldAnimal = t_localAnimals.get(i);
+                            for (int i = 0; i < t_localDBCardInfos.size(); ++i) {
+                                DBCardInfo t_oldDBCardInfo = t_localDBCardInfos.get(i);
 
-                                Message t_message = new Message();
-                                t_message.obj = "delete :" + t_oldAnimal.m_serviceId;
-                                m_handler.sendMessage(t_message);
+                                DBImageInfo t_image = m_dataBase.getImage(t_oldDBCardInfo.m_coverImage);
 
-                                for (int k = 0; k < t_oldAnimal.m_musicPaths.size(); ++k) {
-                                    AnimalAudio t_oldAnimalAudio = t_oldAnimal.m_musicPaths.get(k);
-                                    m_db_animals.delete(t_oldAnimalAudio);
-
-                                    //删除文件
-                                    String t_dir = m_audioPath + t_oldAnimalAudio.dir;
-                                    String[] t_list = t_oldAnimalAudio.url.split("/");
-                                    String t_fileName = t_list[t_list.length - 1];
-
-                                    t_message = new Message();
-                                    t_message.obj = "delete :" + t_dir + "/" + t_fileName;
-                                    m_handler.sendMessage(t_message);
-
-                                    File t_file = new File(t_dir + "/" + t_fileName);
+                                if( t_image != null ){
+                                    File t_file = new File( t_image.m_path );
 
                                     if (t_file.exists()) {
                                         t_file.delete();
-                                        t_deleteAudioCount++;
                                     }
                                 }
 
-                                m_db_animals.delete(t_oldAnimal);
-                                t_deleteAnimalCount++;
+                                t_image = m_dataBase.getImage(t_oldDBCardInfo.m_lineDrawing);
 
+                                if( t_image != null ){
+                                    File t_file = new File( t_image.m_path );
+
+                                    if (t_file.exists()) {
+                                        t_file.delete();
+                                    }
+                                }
+
+
+                                for (int k = 0; k < t_oldDBCardInfo.m_musicPaths.size(); ++k) {
+                                    DBAudioInfo t_oldDBAudioInfo = t_oldDBCardInfo.m_musicPaths.get(k);
+                                    m_dataBase.delete(t_oldDBAudioInfo);
+
+                                    //删除文件
+
+                                    File t_file = new File(t_oldDBAudioInfo.path);
+
+                                    if (t_file.exists()) {
+                                        t_file.delete();
+                                    }
+                                }
+
+                                m_dataBase.delete(t_oldDBCardInfo);
                             }
 
-                            ArrayList<Animal> t_list = m_db_animals.getListInfo();
+                            ArrayList<DBCardInfo> t_list = m_dataBase.getActivationCardList();
                             Message t_message = new Message();
                             t_message.obj = "size :" + t_list.size();
-                            m_handler.sendMessage(t_message);
-
-
-                            t_message = new Message();
-                            t_message.obj = "delete animal: " + t_deleteAnimalCount + ", delete audio: " + t_deleteAudioCount;
                             m_handler.sendMessage(t_message);
 
                         }else{
@@ -336,155 +383,11 @@ public class Control {
                         Log.e("ERROR", e.toString());
                     }
 
-                    UpdateActivity.m_instance.m_listenQueue.remove(p_url);
+                    UIUpdateActivity.m_instance.m_listenQueue.remove(p_url);
 
                     Message t_message = new Message();
                     t_message.obj = "listen size changed";
-                    UpdateActivity.m_instance.m_handler.sendMessage(t_message);
-                }
-            }).get();
-        }
-    }
-
-    public void tryUpdateAnimal()
-    {
-        Log.d("DEBUG", "tryUpdateAnimal" );
-
-        ArrayList<BatchInfo> t_batchList = m_db_animals.getBatchList();
-
-        for( int i = 0; i < t_batchList.size(); ++i )
-        {
-            BatchInfo t_batch = t_batchList.get(i);
-
-            String t_url = Control.sm_serviceHost + "/resource/card/list.do?batchId=" + t_batch.m_id;
-
-            UpdateActivity.m_instance.m_listenQueue.add(t_url);
-
-            new Http(m_context, t_url, new HttpListen() {
-                @Override
-                public void callBack(String p_url, String p_str) {
-
-                    try{
-                        JSONObject t_json = new JSONObject(p_str);
-
-                        Boolean t_success = t_json.getBoolean("success");
-
-                        //读取数据失败
-                        if(!t_success)
-                        {
-                            return;
-                        }
-
-                        JSONArray t_data = t_json.getJSONArray("data");
-
-                        ArrayList<Animal> t_animalList = new ArrayList<>();
-
-                        for( int i = 0; i < t_data.length(); ++i )
-                        {
-                            JSONObject t_animalObject = t_data.getJSONObject(i);
-
-                            int t_rfId = t_animalObject.getInt("rfId");
-                            String t_resourceId = t_animalObject.getString("resourceId");
-                            String t_ownerId = t_animalObject.getString("ownerId");
-
-                            if( i == 0 )
-                            {
-                                t_animalList = m_db_animals.getAnimalsImage( t_ownerId );
-                            }
-
-                            String t_coverImageUrl = "";
-                            String t_md5 = "";
-
-                            if( t_animalObject.getString("coverImage") != "null" )
-                            {
-                                JSONObject t_coverImage = t_animalObject.getJSONObject("coverImage");
-                                t_coverImageUrl = t_coverImage.getString("attUrl");
-                                ImageInfo t_image = m_db_animals.getImage(t_coverImageUrl);
-                                t_md5 = t_coverImage.getString("md5");
-                                if( t_image == null )
-                                {
-                                    m_ImageDownloadQueue.add( new ImageInfo( t_coverImageUrl, t_md5 ) );
-                                }else{
-
-                                    String[] t_list = t_image.m_url.split("/");
-                                    String t_fileName = t_list[t_list.length - 1];
-                                    if( !getMD5Three(m_imagePath + t_fileName).equals(t_md5) )
-                                    {
-                                        m_ImageDownloadQueue.add( new ImageInfo( t_coverImageUrl, t_md5 ) );
-                                    }
-                                }
-                            }
-
-                            Animal t_animal = new Animal( t_rfId, t_resourceId, t_ownerId, t_coverImageUrl, new ArrayList<AnimalAudio>() );
-
-                            Animal t_oldAnimal = null;
-
-                            for(int k = 0; k < t_animalList.size(); ++k)
-                            {
-                                t_oldAnimal = t_animalList.get(k);
-
-                                if( t_oldAnimal.m_cardNumber == t_animal.m_cardNumber )
-                                {
-                                    break;
-                                }
-                                t_oldAnimal = null;
-                            }
-
-                            if( t_oldAnimal == null )
-                            {
-                                m_db_animals.insertAnimalImage(t_animal);
-                            }else {
-                                t_animalList.remove(t_oldAnimal);
-                                if (
-                                        !t_oldAnimal.m_serviceId.equals(t_animal.m_serviceId) ||
-                                                !t_oldAnimal.m_group.equals(t_animal.m_group) ||
-                                                !t_oldAnimal.m_coverImage.equals(t_animal.m_coverImage)) {
-                                    m_db_animals.updateAnimalImage(t_animal);
-                                }
-                            }
-
-                            ImageInfo t_image = m_db_animals.getImage( t_animal.m_coverImage );
-
-                            if( t_image == null || !t_image.m_md5.equals(t_md5) )
-                            {
-                                m_ImageDownloadQueue.add( new ImageInfo( t_animal.m_coverImage, t_md5 ) );
-                            }
-                        }
-
-                        //删除多余卡片信息
-                        for(int i = 0; i < t_animalList.size(); ++i)
-                        {
-                            Animal t_animal = t_animalList.get(i);
-
-                            ImageInfo t_image = m_db_animals.getImage(t_animal.m_coverImage);
-
-                            if( t_image != null )
-                            {
-
-                                String[] t_list = t_image.m_url.split("/");
-                                String t_fileName = t_list[t_list.length - 1];
-                                File t_file = new File(m_imagePath + t_fileName);
-                                if( t_file.exists() )
-                                {
-                                    t_file.delete();
-                                }
-
-                                m_db_animals.delete(t_image);
-                            }
-
-                            m_db_animals.deleteAnimalImage(t_animal);
-                        }
-
-
-                    }catch (Exception e)
-                    {
-                        Log.e("ERROR", e.toString());
-                    }
-
-                    UpdateActivity.m_instance.m_listenQueue.remove(p_url);
-                    Message t_message = new Message();
-                    t_message.obj = "listen size changed";
-                    UpdateActivity.m_instance.m_handler.sendMessage(t_message);
+                    UIUpdateActivity.m_instance.m_handler.sendMessage(t_message);
                 }
             }).get();
         }
@@ -493,10 +396,10 @@ public class Control {
     public void tryUpdateBatch()
     {
 
-        m_batches = m_db_animals.getBatchList();
+        m_batches = m_dataBase.getBatchList();
 
         String t_url = Control.sm_serviceHost + "/resource/batch/list/summary.do";
-        UpdateActivity.m_instance.m_listenQueue.add(t_url);
+        UIUpdateActivity.m_instance.m_listenQueue.add(t_url);
         new Http(m_context, t_url, new HttpListen() {
             @Override
             public void callBack(String p_url, String p_str){
@@ -529,7 +432,7 @@ public class Control {
                         String t_md5 = t_batchInfo.getString("coverMd5");
 
                         boolean t_isExist = false;
-                        BatchInfo t_batch = null;
+                        DBBatchInfo t_batch = null;
                         for( int k = 0; k < m_batches.size(); ++k )
                         {
                             t_batch = m_batches.get(k);
@@ -544,56 +447,43 @@ public class Control {
 
                         if(!t_isExist)
                         {
-
-                            m_db_animals.insert(new BatchInfo(t_batchId, t_batchName, t_batchDesc, t_coverImage));
-                            m_ImageDownloadQueue.add( new ImageInfo( t_coverImage, t_md5) );
+                            m_dataBase.insert(new DBBatchInfo(t_batchId, t_batchName, t_batchDesc, t_md5, false, "animal"));
+                            DBImageInfo t_image = m_dataBase.getImage(t_md5);
+                            if( t_image == null )
+                            {
+                                m_ImageDownloadQueue.add( new DBImageInfo( t_md5, t_coverImage) );
+                            }
                             continue;
                         }
 
-                        ImageInfo t_image = m_db_animals.getImage(t_coverImage);
-                        if( t_image == null )
-                        {
-                            m_ImageDownloadQueue.add( new ImageInfo( t_coverImage, t_md5) );
-                            continue;
-                        }
 
-                        if( !t_batch.m_cover.equals(t_coverImage) )
+                        if( !t_batch.m_cover.equals( t_md5 ) )
                         {
-                            ImageInfo t_localImg = m_db_animals.getImage(t_coverImage);
+                            DBImageInfo t_localImg = m_dataBase.getImage(t_md5);
                             if( t_localImg != null )
                             {
-                                m_db_animals.delete(t_localImg);
+                                m_dataBase.delete( t_localImg );
                             }
 
-                            String[] t_list = t_coverImage.split("/");
-                            String t_fileName = t_list[t_list.length - 1];
-
-                            File t_file = new File(m_imagePath + t_fileName );
+                            File t_file = new File( t_localImg.m_path );
                             if( t_file.exists() )
                             {
                                 t_file.delete();
                             }
-
-                            m_ImageDownloadQueue.add( new ImageInfo( t_coverImage, t_md5) );
-                        }else {
-
-                            String[] t_list = t_coverImage.split("/");
-                            String t_fileName = t_list[t_list.length - 1];
-
-                            File t_file = new File(m_imagePath + t_fileName);
-                            if ( ( !t_image.m_md5.equals(t_md5) || !t_file.exists() ) && !t_coverImage.equals("null") && !t_md5.equals("null") ) {
-                                m_ImageDownloadQueue.add( new ImageInfo( t_coverImage, t_md5) );
-                            }
                         }
 
-                        if( ( !t_batch.m_cover.equals(t_coverImage) || !t_batch.m_batchName.equals(t_batchName) || !t_batch.m_explain.equals(t_batchDesc) ) && !t_coverImage.equals("null") && !t_md5.equals("null") )
+                        if( m_dataBase.getImage(t_md5) == null ){
+                            m_ImageDownloadQueue.add( new DBImageInfo( t_md5, t_coverImage) );
+                        }
+
+                        if( ( !t_batch.m_cover.equals(t_coverImage) || !t_batch.m_batchName.equals(t_batchName) || !t_batch.m_explain.equals(t_batchDesc) ) || !t_batch.m_cover.equals( t_md5 ) )
                         {
                             t_batch.m_explain = t_batchDesc;
                             t_batch.m_batchName = t_batchName;
-                            t_batch.m_cover = t_coverImage;
+                            t_batch.m_cover = t_md5;
 
                             Log.d("DEBUG", "batch update");
-                            m_db_animals.update(t_batch);
+                            m_dataBase.update(t_batch);
                         }
                     }
 
@@ -607,34 +497,34 @@ public class Control {
                 for( int i = 0; i < m_batches.size(); ++i )
                 {
                     //删除多余分组 (包括图片文件)
-                    BatchInfo t_batch = m_batches.get(i);
+                    DBBatchInfo t_batch = m_batches.get(i);
 
-                    ImageInfo t_image = m_db_animals.getImage(t_batch.m_cover);
+                    //删除卡片
+
+                    DBImageInfo t_image = m_dataBase.getImage(t_batch.m_cover);
 
                     if( t_image != null )
                     {
-                        String[] t_list = t_image.m_url.split("/");
-                        String t_fileName = t_list[t_list.length - 1];
-                        File t_file = new File(m_imagePath + t_fileName);
+                        File t_file = new File( t_image.m_path );
                         if( t_file.exists() )
                         {
                             t_file.delete();
                         }
 
-                        m_db_animals.delete(t_image);
+                        m_dataBase.delete(t_image);
                     }
-                    m_db_animals.delete(t_batch);
+                    m_dataBase.delete(t_batch);
                 }
 
                 Message t_message = new Message();
-                t_message.obj = "tryUpdateAnimal";
+                t_message.obj = "tryUpdate";
                 m_handler.sendMessage(t_message);
 
-                UpdateActivity.m_instance.m_listenQueue.remove(p_url);
+                UIUpdateActivity.m_instance.m_listenQueue.remove(p_url);
 
                 t_message = new Message();
                 t_message.obj = "listen size changed";
-                UpdateActivity.m_instance.m_handler.sendMessage(t_message);
+                UIUpdateActivity.m_instance.m_handler.sendMessage(t_message);
             }
         }).get();
     }
@@ -671,10 +561,10 @@ public class Control {
 
         while( m_downloadQueue.size() > 0 )
         {
-            AnimalAudio t_animalAudio = m_downloadQueue.get(0);
-            m_downloadQueue.remove(t_animalAudio);
+            DBAudioInfo t_DBAudioInfo = m_downloadQueue.get(0);
+            m_downloadQueue.remove(t_DBAudioInfo);
 
-            String t_dir = m_audioPath + t_animalAudio.dir;
+            String t_dir = m_audioPath + t_DBAudioInfo.cardId;
             File t_file = new File(t_dir);
             if( !t_file.exists() )
             {
@@ -686,13 +576,15 @@ public class Control {
                 }
             }
 
-            String t_path = t_animalAudio.url;
+            String t_path = t_DBAudioInfo.path;
             String[] t_list = t_path.split("/");
             String t_fileName = t_list[t_list.length - 1];
 
             Log.d("DEBUG", "download file: " + sm_serviceHost + t_path );
 
-            UpdateActivity.m_instance.m_downloadQueue.add( new DownLoadFile( new DownLoadFileListen() {
+            t_DBAudioInfo.path = t_dir + "/" + t_fileName;
+
+            UIUpdateActivity.m_instance.m_downloadQueue.add( new DownLoadFile(new DownLoadFileListen() {
 
                 @Override
                 public void onStartDownLoad() {
@@ -704,28 +596,24 @@ public class Control {
                     Log.d("DEBUG", "download end: " + p_state);
                     if( p_state ) {
 
-                        UpdateActivity.m_instance.downloadEnd();
+                        UIUpdateActivity.m_instance.downloadEnd();
                         //校验文件md5
 
-                        AnimalAudio t_animalAudio = (AnimalAudio)p_obj;
+                        DBAudioInfo t_DBAudioInfo = (DBAudioInfo)p_obj;
 
-                        String t_dir = m_audioPath + t_animalAudio.dir;
-                        String[] t_list = t_animalAudio.url.split("/");
-                        String t_fileName = t_list[t_list.length - 1];
-
-                        File t_file = new File( t_dir + "/" + t_fileName );
+                        File t_file = new File( t_DBAudioInfo.path );
 
                         if( !t_file.exists() )
                         {
-                            Log.d("DEBUG","---file not exists: " + t_dir + "/" + t_fileName + ", " + p_state );
+                            Log.d("DEBUG","---file not exists: " + t_DBAudioInfo.path + ", " + p_state );
                             return;
                         }
 
-                        String t_md5 = getMD5Three( t_dir + "/" + t_fileName );
+                        String t_md5 = getMD5Three( t_DBAudioInfo.path  );
 
-                        Log.d( "DEBUG","service md5: " + t_animalAudio.md5 + ", local md5: " + t_md5 );
+                        Log.d( "DEBUG","service md5: " + t_DBAudioInfo.md5 + ", local md5: " + t_md5 );
 
-                        if( ! t_md5.equals(t_animalAudio.md5) )
+                        if( ! t_md5.equals(t_DBAudioInfo.md5) )
                         {
 
                             if( t_file.exists() )
@@ -736,7 +624,7 @@ public class Control {
                             return;
                         }
 
-                        m_db_animals.insert(t_animalAudio);
+                        m_dataBase.insert(t_DBAudioInfo);
                         //添加到音频表
 
                     }
@@ -745,7 +633,7 @@ public class Control {
                 @Override
                 public void onUpdateDownloadRate(float p_rate) {
                 }
-            }, sm_serviceHost + "/" + t_path, t_dir + "/" + t_fileName, t_animalAudio ) );
+            }, sm_serviceHost + "/" + t_path, t_DBAudioInfo.path, t_DBAudioInfo) );
 
         }
     }
@@ -768,16 +656,21 @@ public class Control {
                 }
             }
 
-            ImageInfo t_image = m_ImageDownloadQueue.get(0);
+            DBImageInfo t_image = m_ImageDownloadQueue.get(0);
             m_ImageDownloadQueue.remove(t_image);
 
-            String[] t_list = t_image.m_url.split("/");
+            String[] t_list = t_image.m_path.split("/");
             String t_fileName = t_list[t_list.length - 1];
 
-            Log.d("DEBUG", sm_serviceHost + "/" + t_image.m_url);
+//
+            Log.d("DEBUG", sm_serviceHost + "/" + t_image.m_path);
             Log.d("DEBUG", m_imagePath + t_fileName);
 
-            UpdateActivity.m_instance.m_downloadQueue.add( new DownLoadFile(new DownLoadFileListen() {
+            String t_url = sm_serviceHost + "/" + t_image.m_path;
+
+            t_image.m_path = m_imagePath + t_fileName;
+
+            UIUpdateActivity.m_instance.m_downloadQueue.add( new DownLoadFile(new DownLoadFileListen() {
                 @Override
                 public void onStartDownLoad() {
 
@@ -785,23 +678,18 @@ public class Control {
 
                 @Override
                 public void onEndDownload(boolean p_state, Object p_obj) {
-                    UpdateActivity.m_instance.downloadEnd();
+                    UIUpdateActivity.m_instance.downloadEnd();
 
-                    ImageInfo t_image = (ImageInfo) p_obj;
+                    DBImageInfo t_image = (DBImageInfo) p_obj;
 
-                    String[] t_list = t_image.m_url.split("/");
-                    String t_fileName = t_list[t_list.length - 1];
-
-                    String t_imagePath = m_imagePath + t_fileName;
-
-                    File t_file = new File( t_imagePath );
+                    File t_file = new File( t_image.m_path );
                     if( !t_file.exists() )
                     {
-                        Log.d("DEBUG", "---file not exists: " + t_imagePath + ", " + p_state );
+                        Log.d("DEBUG", "---file not exists: " + t_image.m_path + ", " + p_state );
                         return;
                     }
 
-                    String t_md5 = getMD5Three( t_imagePath );
+                    String t_md5 = getMD5Three( t_image.m_path );
 
                     Log.d( "DEBUG","local md5: " + t_md5 );
 
@@ -810,15 +698,15 @@ public class Control {
                         return;
                     }
 
-                    ImageInfo t_img = m_db_animals.getImage(t_image.m_url);
+                    DBImageInfo t_img = m_dataBase.getImage(t_image.m_md5);
                     if( t_img == null ) {
-                        m_db_animals.insert(new ImageInfo(t_image.m_url, t_md5));
+                        m_dataBase.insert(t_image);
                         return;
                     }
 
-                    if( t_img.m_md5 != t_md5 )
+                    if( t_img.m_path != t_image.m_path )
                     {
-                        m_db_animals.update(new ImageInfo(t_image.m_url, t_md5));
+                        m_dataBase.update(t_image);
                     }
                 }
 
@@ -826,13 +714,13 @@ public class Control {
                 public void onUpdateDownloadRate(float p_rate) {
 
                 }
-            }, sm_serviceHost + "/" + t_image.m_url,m_imagePath + t_fileName, t_image ) );
+            }, t_url, t_image.m_path, t_image ) );
         }
     }
 
     public void clearData()
     {
-        m_db_animals.clearAnimals();
+        m_dataBase.clearDataBase();
         deleteDir( m_audioPath );
         Log.d("DEBUG", "清空本地数据");
     }
@@ -840,19 +728,19 @@ public class Control {
     private void onScan(final int p_id )
     {
 
-        Animal t_animal = null;
+        DBCardInfo t_DB_card = null;
 
         //判断本地是否有当前卡片信息
-        t_animal = m_db_animals.getAnimalByCardId( p_id );
+        t_DB_card = m_dataBase.getCardById( p_id );
 
-        if( t_animal != null && t_animal.m_musicPaths.size() > 0 )
+        if( t_DB_card != null && t_DB_card.m_musicPaths.size() > 0 )
         {
 
             boolean m_existNormalAudio = false;
 
-            for( int i = 0; i < t_animal.m_musicPaths.size() ; ++i )
+            for(int i = 0; i < t_DB_card.m_musicPaths.size() ; ++i )
             {
-                if( t_animal.m_musicPaths.get(i).audioType != 2 )
+                if( t_DB_card.m_musicPaths.get(i).audioType != 2 )
                 {
                     m_existNormalAudio = true;
                     break;
@@ -862,12 +750,12 @@ public class Control {
 
             //随机播放音频
             do {
-                m_audioIndex = (int) Math.floor(Math.random() * t_animal.m_musicPaths.size());
-            }while( m_audioIndex == t_animal.m_musicPaths.size() );
+                m_audioIndex = (int) Math.floor(Math.random() * t_DB_card.m_musicPaths.size());
+            }while( m_audioIndex == t_DB_card.m_musicPaths.size() );
 
-            AnimalAudio t_animalAudio = t_animal.m_musicPaths.get(m_audioIndex);
+            DBAudioInfo t_DBAudioInfo = t_DB_card.m_musicPaths.get(m_audioIndex);
 
-            if(t_animalAudio == null)
+            if(t_DBAudioInfo == null)
             {
                 return;
             }
@@ -883,18 +771,18 @@ public class Control {
                 m_prevCardId = p_id;
             }
 
-            if(t_animalAudio.audioType == 2)
+            if(t_DBAudioInfo.audioType == 2)
             {
                 if( m_soloMediaPlayer != null && m_soloMediaPlayer.isPlaying() && m_existNormalAudio )
                 {
                     //随机播放音频
                     do {
                         do {
-                            m_audioIndex = (int) Math.floor(Math.random() * t_animal.m_musicPaths.size());
-                        } while (m_audioIndex == t_animal.m_musicPaths.size());
+                            m_audioIndex = (int) Math.floor(Math.random() * t_DB_card.m_musicPaths.size());
+                        } while (m_audioIndex == t_DB_card.m_musicPaths.size());
 
-                        t_animalAudio = t_animal.m_musicPaths.get(m_audioIndex);
-                    }while(t_animalAudio.audioType == 2);
+                        t_DBAudioInfo = t_DB_card.m_musicPaths.get(m_audioIndex);
+                    }while(t_DBAudioInfo.audioType == 2);
                 }else {
 
                     for (int i = 0; i < m_mediaPlayerList.size(); ++i) {
@@ -908,8 +796,7 @@ public class Control {
             }
 
 
-            String t_dir = m_audioPath + t_animal.m_serviceId;
-            String t_path = t_animal.m_musicPaths.get(m_audioIndex).url;
+            String t_path = t_DB_card.m_musicPaths.get(m_audioIndex).path;
 
             Message t_message = new Message();
             t_message.obj = "path: " + t_path;
@@ -918,7 +805,7 @@ public class Control {
 
             MediaPlayer t_mediaPlayer = null;
 
-            if( t_animalAudio.audioType == 2 )
+            if( t_DBAudioInfo.audioType == 2 )
             {
                 if( m_soloMediaPlayer == null )
                 {
@@ -954,17 +841,13 @@ public class Control {
                 t_mediaPlayer.reset();
             }
 
-            if(t_animalAudio == null)
+            if(t_DBAudioInfo == null)
             {
                 return;
             }
 
-
-            String[] t_list = t_animal.m_musicPaths.get(m_audioIndex).url.split("/");
-            String t_fileName = t_list[t_list.length - 1];
-
             try{
-                t_mediaPlayer.setDataSource( t_dir + "/" + t_fileName );
+                t_mediaPlayer.setDataSource( t_DB_card.m_musicPaths.get(m_audioIndex).path );
                 t_mediaPlayer.prepare();
             }catch (Exception e)
             {
@@ -1018,7 +901,7 @@ public class Control {
                             int t_cardId = t_animal.getInt("rfId");
 
                             //判断数据库中是否存在
-                            boolean t_isExist = m_db_animals.getAnimalByCardId( t_cardId ) != null;
+                            boolean t_isExist = m_dataBase.getCardById( t_cardId ) != null;
 
                             if( t_isExist )
                             {
@@ -1031,12 +914,14 @@ public class Control {
                             String t_groupId = t_animal.getString("ownerId");
 
 
-                            JSONArray t_musics = t_animal.getJSONArray("audios");
-                            for( int k = 0; k < t_musics.length(); ++k ){
-                                String t_url = t_musics.getJSONObject(k).getString("attUrl");
-                                String t_md5 = t_musics.getJSONObject(k).getString("md5");
+                            if( !t_animal.getString("audios").equals("null") ) {
+                                JSONArray t_musics = t_animal.getJSONArray("audios");
+                                for (int k = 0; k < t_musics.length(); ++k) {
+                                    String t_url = t_musics.getJSONObject(k).getString("attUrl");
+                                    String t_md5 = t_musics.getJSONObject(k).getString("md5");
 
-                                m_downloadQueue.add( new AnimalAudio( t_cardId, t_resourceId, t_url, t_md5, 1 ) );
+                                    m_downloadQueue.add(new DBAudioInfo(t_md5, t_cardId, t_url, 1));
+                                }
                             }
 
                             Log.d("DEBUG", t_animal.getString("pronAudio") );
@@ -1047,7 +932,7 @@ public class Control {
                                 if (t_pronAudios != null && t_pronAudios.getString("attUrl") != "") {
                                     String t_url = t_pronAudios.getString("attUrl");
                                     String t_md5 = t_pronAudios.getString("md5");
-                                    m_downloadQueue.add(new AnimalAudio(t_cardId, t_resourceId, t_url, t_md5, 2));
+                                    m_downloadQueue.add(new DBAudioInfo( t_md5, t_cardId, t_url, 2 ));
                                 }
                             }
 
@@ -1057,28 +942,12 @@ public class Control {
                                 {
                                     String t_url = t_descAudios.getString("attUrl");
                                     String t_md5 = t_descAudios.getString("md5");
-                                    m_downloadQueue.add(new AnimalAudio(t_cardId, t_resourceId, t_url, t_md5, 2));
+                                    m_downloadQueue.add(new DBAudioInfo( t_md5, t_cardId, t_url, 2 ));
                                 }
                             }
 
-//                            String t_coverImageUrl = "";
-//
-//                            if( !t_animal.getString("coverImage").equals("null") )
-//                            {
-//                                JSONObject t_coverImage = t_animal.getJSONObject("coverImage");
-//                                t_coverImageUrl = t_coverImage.getString("attUrl");
-//                                ImageInfo t_image = m_db_animals.getImage(t_coverImageUrl);
-//                                if( t_image == null )
-//                                {
-//                                    m_ImageDownloadQueue.add( t_coverImageUrl );
-//                                }
-//                            }
-
 
                             Log.d("DEBUG", "need download: " + t_resourceId);
-
-                            m_db_animals.insert( new Animal( t_cardId, t_resourceId, t_groupId, "", new ArrayList<AnimalAudio>() ) );
-
                         }
 
                         if( m_downloadQueue.size() > 0 )

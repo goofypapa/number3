@@ -5,12 +5,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 
-public class MenuActivity extends AppCompatActivity {
+public class UIMenuActivity extends AppCompatActivity {
 
 
     private ImageView m_img_back, m_img_blue, m_img_menu_animal;
@@ -70,8 +68,8 @@ public class MenuActivity extends AppCompatActivity {
 //            }
 //        };
 
-        m_toCardList = new Intent(MenuActivity.this, CardListActivity.class);
-        m_toBlueSearch = new Intent(MenuActivity.this, BlueSearchActivity.class);
+        m_toCardList = new Intent(UIMenuActivity.this, UICardListActivity.class);
+        m_toBlueSearch = new Intent(UIMenuActivity.this, BlueSearchActivity.class);
 
 
         m_img_back.setOnClickListener(new View.OnClickListener() {

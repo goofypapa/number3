@@ -2,9 +2,11 @@ package com.dadpat.goofypapa.dadpat;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
@@ -14,7 +16,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-public class WebViewActivity extends AppCompatActivity {
+public class UIWebViewActivity extends AppCompatActivity {
 
     private WebView m_vm_main;
 
@@ -42,17 +44,26 @@ public class WebViewActivity extends AppCompatActivity {
          * setSupportZoom 设置是否支持变焦
          * */
         ws.setBuiltInZoomControls(true);// 隐藏缩放按钮
-        ws.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);// 排版适应屏幕
+        ws.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);// 排版适应屏幕
         ws.setUseWideViewPort(true);// 可任意比例缩放
         ws.setLoadWithOverviewMode(true);// setUseWideViewPort方法设置webview推荐使用的窗口。setLoadWithOverviewMode方法是设置webview加载的页面的模式。
 //        ws.setSavePassword(true);
         ws.setSaveFormData(true);// 保存表单数据
         ws.setJavaScriptEnabled(true);
         ws.setGeolocationEnabled(true);// 启用地理定位
-//        ws.setGeolocationDatabasePath("/data/data/org.itri.html5webview/databases/");// 设置定位的数据库路径
+        ws.setGeolocationDatabasePath("/data/data/org.itri.html5webview/databases/");// 设置定位的数据库路径
         ws.setDomStorageEnabled(true);
 
+
+        ws.setNeedInitialFocus(false);
+
+        ws.setSupportZoom(true);
+
+        ws.setLoadsImagesAutomatically(true);//自动加载图片
+
+
         m_vm_main.loadUrl("http://www.dadpat.com/dist/dadpat01/details.html?resourceId=" + s_animalId);
+
         m_vm_main.addJavascriptInterface( this, "goofyPapa" );
 
         mWebchromeclient = new WebChromeClient();
@@ -107,4 +118,5 @@ public class WebViewActivity extends AppCompatActivity {
     {
         finish();
     }
+
 }

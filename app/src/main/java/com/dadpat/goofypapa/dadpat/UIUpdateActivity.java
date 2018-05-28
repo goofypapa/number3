@@ -6,12 +6,11 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.webkit.ValueCallback;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class UpdateActivity extends AppCompatActivity {
+public class UIUpdateActivity extends AppCompatActivity {
 
     public ArrayList<DownLoadFile> m_downloadQueue = null;
     public int m_downloadIndex;
@@ -20,7 +19,7 @@ public class UpdateActivity extends AppCompatActivity {
 
     public ArrayList<String> m_listenQueue = null;
 
-    public static UpdateActivity m_instance;
+    public static UIUpdateActivity m_instance;
 
     private TextView m_downloadState;
 
@@ -39,7 +38,7 @@ public class UpdateActivity extends AppCompatActivity {
 
         m_instance = this;
 
-        m_toMenu = new Intent(UpdateActivity.this, MenuActivity.class);
+        m_toMenu = new Intent(UIUpdateActivity.this, UIMenuActivity.class);
 
         m_downloadState = findViewById(R.id.tv_downState);
 
@@ -79,11 +78,7 @@ public class UpdateActivity extends AppCompatActivity {
 
 
         if( Control.instance().isNetworkConnected() ) {
-
-            Control.instance().tryUpdate();
             Control.instance().tryUpdateBatch();
-            Control.instance().tryUpdateAnimal();
-
             m_downloadState.setText("Search update");
         }else{
             startActivity(m_toMenu);

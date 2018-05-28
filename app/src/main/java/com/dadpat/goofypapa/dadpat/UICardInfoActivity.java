@@ -1,7 +1,6 @@
 package com.dadpat.goofypapa.dadpat;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
@@ -9,7 +8,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TableLayout;
@@ -19,11 +17,11 @@ import android.widget.TextView;
 import java.io.File;
 import java.util.ArrayList;
 
-public class CardInfoActivity extends AppCompatActivity {
+public class UICardInfoActivity extends AppCompatActivity {
 
     private ImageView m_imgBack;
 
-    private Db_Animals m_db_animals;
+    private DataBase m_dataBase;
 
     private Intent m_toWebView;
 
@@ -52,22 +50,23 @@ public class CardInfoActivity extends AppCompatActivity {
 
         m_ivCardGroupCover = findViewById(R.id.iv_groupCover);
 
-        m_db_animals = new Db_Animals(getApplicationContext());
+        m_dataBase = new DataBase(getApplicationContext());
 
-        ArrayList<Animal> t_animalList = m_db_animals.getAnimalsImage( s_cradGroupId );
+        ArrayList<DBCardInfo> t_DB_cardList = m_dataBase.getCardListByBatche( s_cradGroupId );
 
-        BatchInfo t_batch = m_db_animals.getBatchInfo( s_cradGroupId );
+        DBBatchInfo t_batch = m_dataBase.getBatchInfo( s_cradGroupId );
 
         if( t_batch != null )
         {
-            String[] t_list = t_batch.m_cover.split("/");
-            String t_fileName = t_list[t_list.length - 1];
 
-            File t_file = new File(Control.instance().m_imagePath + t_fileName );
+            DBImageInfo t_image = m_dataBase.getImage(t_batch.m_cover);
 
-            if( t_file.exists() )
-            {
-                m_ivCardGroupCover.setImageURI(Uri.fromFile(t_file));
+            if( t_image != null ) {
+                File t_file = new File( t_image.m_path );
+
+                if (t_file.exists()) {
+                    m_ivCardGroupCover.setImageURI(Uri.fromFile(t_file));
+                }
             }
 
             m_tvGroupInfo.setText(t_batch.m_explain);
@@ -83,31 +82,34 @@ public class CardInfoActivity extends AppCompatActivity {
 
         int t_areaSize = (t_windowSize.x - t_marginSize * 2) / 4;
         try {
-            for (int i = 0; i < t_animalList.size(); ++i) {
-                Animal t_animal = t_animalList.get(i);
+            for (int i = 0; i < t_DB_cardList.size(); ++i) {
+                DBCardInfo t_DB_card = t_DB_cardList.get(i);
 
 
-                boolean t_localImg = true;
+                boolean t_localImg = false;
 
-                String[] t_list = t_animal.m_coverImage.split("/");
-                String t_fileName = t_list[t_list.length - 1];
+                DBImageInfo t_img = m_dataBase.getImage( t_DB_card.m_activation ? t_DB_card.m_coverImage : t_DB_card.m_lineDrawing );
 
-                File t_file = new File(Control.instance().m_imagePath + t_fileName);
-                if (!t_file.exists()) {
-                    t_localImg = false;
+                File t_file = null;
+
+                if( t_img != null ) {
+                    t_file = new File(t_img.m_path);
+                    if (t_file.exists()) {
+                        t_localImg = true;
+                    }
                 }
 
                 if (i % 4 == 0) {
                     t_tableRow = new TableRow(m_tlCardList.getContext());
                 }
 
-                CardRelativeLayout t_cardRelativeLayout = new CardRelativeLayout(t_tableRow.getContext(), t_animal.m_serviceId);
+                CardRelativeLayout t_cardRelativeLayout = new CardRelativeLayout(t_tableRow.getContext(), t_DB_card.m_serviceId);
 
                 t_cardRelativeLayout.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         CardRelativeLayout t_cardRelativeLayout = (CardRelativeLayout)v;
-                        WebViewActivity.s_animalId = t_cardRelativeLayout.cradId;
+                        UIWebViewActivity.s_animalId = t_cardRelativeLayout.cradId;
                         startActivity(m_toWebView);
 
                     }
@@ -122,12 +124,12 @@ public class CardInfoActivity extends AppCompatActivity {
                     t_imageView.setImageURI(Uri.fromFile(t_file));
                 } else {
                     t_imageView.setImageResource(R.mipmap.card_group_cover_loding);
-                    new GetBitmap(Control.sm_serviceHost + "/" + t_animal.m_coverImage, t_imageView, new GetBitmapListen() {
-                        @Override
-                        public void callBack(Object p_obj, Bitmap p_bitmap) {
-                            ((ImageView) p_obj).setImageBitmap(p_bitmap);
-                        }
-                    }).get();
+//                    new GetBitmap(Control.sm_serviceHost + "/" + t_DB_card.m_coverImage, t_imageView, new GetBitmapListen() {
+//                        @Override
+//                        public void callBack(Object p_obj, Bitmap p_bitmap) {
+//                            ((ImageView) p_obj).setImageBitmap(p_bitmap);
+//                        }
+//                    }).get();
                 }
 
                 t_cardRelativeLayout.addView(t_imageView);
@@ -155,7 +157,7 @@ public class CardInfoActivity extends AppCompatActivity {
         }
 
 
-        m_toWebView = new Intent(this, WebViewActivity.class);
+        m_toWebView = new Intent(this, UIWebViewActivity.class);
 
 
         m_imgBack.setOnClickListener(new View.OnClickListener() {

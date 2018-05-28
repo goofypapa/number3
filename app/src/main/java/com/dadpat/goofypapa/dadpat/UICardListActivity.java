@@ -1,11 +1,8 @@
 package com.dadpat.goofypapa.dadpat;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,22 +10,16 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Space;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.util.ArrayList;
 
-public class CardListActivity extends AppCompatActivity {
+public class UICardListActivity extends AppCompatActivity {
 
     private ImageView m_img_back;
     private ImageView m_img_listStyle;
@@ -39,7 +30,7 @@ public class CardListActivity extends AppCompatActivity {
 
     private TableLayout m_cardBatchList;
 
-    private Db_Animals m_db_animals;
+    private DataBase m_dataBase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +41,12 @@ public class CardListActivity extends AppCompatActivity {
 
         m_doubleColumn = true;
 
-        m_db_animals = new Db_Animals(getApplicationContext());
+        m_dataBase = new DataBase(getApplicationContext());
 
         m_img_back = findViewById(R.id.img_back);
         m_img_listStyle = findViewById(R.id.img_listStyle);
 
-        m_toInfo = new Intent(this, CardInfoActivity.class);
+        m_toInfo = new Intent(this, UICardInfoActivity.class);
 
         m_cardBatchList = findViewById(R.id.tl_cardBatchList);
 
@@ -87,9 +78,7 @@ public class CardListActivity extends AppCompatActivity {
         {
             m_img_listStyle.setImageResource(R.mipmap.list_icon_smallpic);
 
-            ArrayList<String> t_activationBatchList = m_db_animals.getAnimalGroupList();
-
-            ArrayList<BatchInfo> t_batchList = m_db_animals.getBatchList();
+            ArrayList<DBBatchInfo> t_batchList = m_dataBase.getBatchList();
 
             Point t_windowSize = new Point();
             getWindowManager().getDefaultDisplay().getSize(t_windowSize);
@@ -104,19 +93,9 @@ public class CardListActivity extends AppCompatActivity {
 
             for (int i = 0; i < t_batchList.size(); ++i) {
 
-                BatchInfo t_batch = t_batchList.get(i);
-                ImageInfo t_img = m_db_animals.getImage(t_batch.m_cover);
+                DBBatchInfo t_batch = t_batchList.get(i);
+                DBImageInfo t_img = m_dataBase.getImage(t_batch.m_cover);
                 boolean t_localImg = true;
-                boolean t_isActive = false;
-
-                for( int k = 0; k < t_activationBatchList.size(); ++k)
-                {
-                    if( t_batch.m_id.equals(t_activationBatchList.get(k)) )
-                    {
-                        t_isActive = true;
-                        break;
-                    }
-                }
 
                 String t_fileName = "";
 
@@ -125,10 +104,7 @@ public class CardListActivity extends AppCompatActivity {
                     t_localImg = false;
                 }else{
 
-                    String[] t_list = t_img.m_url.split("/");
-                    t_fileName = t_list[t_list.length - 1];
-
-                    File t_file = new File(Control.instance().m_imagePath + t_fileName );
+                    File t_file = new File( t_img.m_path );
                     if( !t_file.exists() )
                     {
                         t_localImg = false;
@@ -147,7 +123,7 @@ public class CardListActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         CardRelativeLayout t_cardRelativeLayout = (CardRelativeLayout)v;
 
-                        CardInfoActivity.s_cradGroupId = t_cardRelativeLayout.cradId;
+                        UICardInfoActivity.s_cradGroupId = t_cardRelativeLayout.cradId;
 
                         startActivity(m_toInfo);
                     }
@@ -159,20 +135,20 @@ public class CardListActivity extends AppCompatActivity {
 
                 if( t_localImg )
                 {
-                    t_imageView.setImageURI(Uri.fromFile(new File(Control.instance().m_imagePath + t_fileName)));
+                    t_imageView.setImageURI(Uri.fromFile(new File( t_img.m_path )));
                 }else{
                     t_imageView.setImageResource(R.mipmap.card_group_cover_loding);
-
-                    new GetBitmap(Control.sm_serviceHost + "/" + t_batch.m_cover, t_imageView, new GetBitmapListen() {
-                        @Override
-                        public void callBack(Object p_obj, Bitmap p_bitmap) {
-                            ((ImageView)p_obj).setImageBitmap(p_bitmap);
-                        }
-                    }).get();
+//
+//                    new GetBitmap(Control.sm_serviceHost + "/" + t_batch.m_cover, t_imageView, new GetBitmapListen() {
+//                        @Override
+//                        public void callBack(Object p_obj, Bitmap p_bitmap) {
+//                            ((ImageView)p_obj).setImageBitmap(p_bitmap);
+//                        }
+//                    }).get();
                 }
 
                 ImageView t_lock = null;
-                if(!t_isActive) {
+                if(!t_batch.m_activation) {
                     t_lock = new ImageView(t_relativeLayout.getContext());
                     t_lock.setImageResource(R.mipmap.list_icon_lock);
                 }
@@ -230,10 +206,7 @@ public class CardListActivity extends AppCompatActivity {
             }
         }else{
             m_img_listStyle.setImageResource(R.mipmap.list_icon_bigpic);
-
-            ArrayList<String> t_activationBatchList = m_db_animals.getAnimalGroupList();
-
-            ArrayList<BatchInfo> t_batchList = m_db_animals.getBatchList();
+            ArrayList<DBBatchInfo> t_batchList = m_dataBase.getBatchList();
 
             Point t_windowSize = new Point();
             getWindowManager().getDefaultDisplay().getSize(t_windowSize);
@@ -247,19 +220,9 @@ public class CardListActivity extends AppCompatActivity {
 
             for (int i = 0; i < t_batchList.size(); ++i) {
 
-                BatchInfo t_batch = t_batchList.get(i);
-                ImageInfo t_img = m_db_animals.getImage(t_batch.m_cover);
+                DBBatchInfo t_batch = t_batchList.get(i);
+                DBImageInfo t_img = m_dataBase.getImage(t_batch.m_cover);
                 boolean t_localImg = true;
-                boolean t_isActive = false;
-
-                for( int k = 0; k < t_activationBatchList.size(); ++k)
-                {
-                    if( t_batch.m_id.equals(t_activationBatchList.get(k)) )
-                    {
-                        t_isActive = true;
-                        break;
-                    }
-                }
 
                 String t_fileName = "";
 
@@ -268,10 +231,7 @@ public class CardListActivity extends AppCompatActivity {
                     t_localImg = false;
                 }else{
 
-                    String[] t_list = t_img.m_url.split("/");
-                    t_fileName = t_list[t_list.length - 1];
-
-                    File t_file = new File(Control.instance().m_imagePath + t_fileName );
+                    File t_file = new File( t_img.m_path );
                     if( !t_file.exists() )
                     {
                         t_localImg = false;
@@ -289,7 +249,7 @@ public class CardListActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         CardRelativeLayout t_cardRelativeLayout = (CardRelativeLayout)v;
 
-                        CardInfoActivity.s_cradGroupId = t_cardRelativeLayout.cradId;
+                        UICardInfoActivity.s_cradGroupId = t_cardRelativeLayout.cradId;
 
                         startActivity(m_toInfo);
                     }
@@ -301,20 +261,20 @@ public class CardListActivity extends AppCompatActivity {
 
                 if( t_localImg )
                 {
-                    t_imageView.setImageURI(Uri.fromFile(new File(Control.instance().m_imagePath + t_fileName)));
+                    t_imageView.setImageURI(Uri.fromFile(new File( t_img.m_path )));
                 }else{
                     t_imageView.setImageResource(R.mipmap.card_group_cover_loding);
 
-                    new GetBitmap(Control.sm_serviceHost + "/" + t_batch.m_cover, t_imageView, new GetBitmapListen() {
-                        @Override
-                        public void callBack(Object p_obj, Bitmap p_bitmap) {
-                            ((ImageView)p_obj).setImageBitmap(p_bitmap);
-                        }
-                    }).get();
+//                    new GetBitmap(Control.sm_serviceHost + "/" + t_batch.m_cover, t_imageView, new GetBitmapListen() {
+//                        @Override
+//                        public void callBack(Object p_obj, Bitmap p_bitmap) {
+//                            ((ImageView)p_obj).setImageBitmap(p_bitmap);
+//                        }
+//                    }).get();
                 }
 
                 ImageView t_lock = null;
-                if(!t_isActive) {
+                if(!t_batch.m_activation) {
                     t_lock = new ImageView(t_relativeLayout.getContext());
                     t_lock.setImageResource(R.mipmap.list_icon_lock);
                 }
