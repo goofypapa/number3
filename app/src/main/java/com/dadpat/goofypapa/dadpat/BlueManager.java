@@ -26,7 +26,7 @@ import java.util.UUID;
 
 
 public class BlueManager extends Object {
-    static String sm_blueName = "FSC-BT906";
+    static String sm_blueName = "REMAX-01";
 //    static String sm_blueName = "goofyPapa";
 
     private int m_blueState;
@@ -87,6 +87,9 @@ public class BlueManager extends Object {
 
                 if( t_str.contains("卡号：") )
                 {
+
+                    Log.d( "DEBUG", t_str);
+
                     String[] t_sp = t_str.split("：");
                     switch (t_sp[1])
                     {
@@ -106,8 +109,7 @@ public class BlueManager extends Object {
                         item.onScan(t_cardId);
                     }
                 }
-
-
+                
                 Log.d("DEBUG", t_str);
             }
         };

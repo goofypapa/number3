@@ -1,16 +1,11 @@
 package com.dadpat.goofypapa.dadpat;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -20,7 +15,7 @@ public class UIWebViewActivity extends AppCompatActivity {
 
     private WebView m_vm_main;
 
-    private WebChromeClient mWebchromeclient;
+    private WebChromeClient mWebChromeClient;
 
     public static String s_animalId;
 
@@ -66,8 +61,8 @@ public class UIWebViewActivity extends AppCompatActivity {
 
         m_vm_main.addJavascriptInterface( this, "goofyPapa" );
 
-        mWebchromeclient = new WebChromeClient();
-        m_vm_main.setWebChromeClient(mWebchromeclient);
+        mWebChromeClient = new WebChromeClient();
+        m_vm_main.setWebChromeClient(mWebChromeClient);
 
         m_vm_main.setWebViewClient(new WebViewClient() {
             //设置加载前的函数
@@ -104,19 +99,25 @@ public class UIWebViewActivity extends AppCompatActivity {
         {
             super.onBackPressed();
         }else{
-            m_vm_main.evaluateJavascript("javascript:history.go(-1)", new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String value) {
-                    Log.d("DEBUG", "call javascript back" + value);
-                }
-            });
+            back();
         }
     }
 
     @JavascriptInterface
     public void back()
     {
-        finish();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if( m_vm_main.canGoBack() ){
+                    m_vm_main.goBack();
+                }else {
+                    finish();
+                }
+
+//                finish();
+            }
+        });
     }
 
 }
