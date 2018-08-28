@@ -111,6 +111,7 @@ public class UIUpdateActivity extends AppCompatActivity {
         download();
 
         m_downloadState.setText( "Downloading " + ( (int)Math.floor ( (float)m_downloadIndex / m_downloadQueue.size() * 100 ) ) + "%");
+        Log.d("Download", ( (int)Math.floor ( (float)m_downloadIndex / m_downloadQueue.size() * 100 ) ) + "%");
     }
 
     @Override

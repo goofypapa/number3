@@ -2,6 +2,7 @@ package com.dadpat.goofypapa.dadpat;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -37,13 +38,12 @@ public class BlueSearchActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onScan(String p_code) {
+            public void onScan(int p_code) {
 
             }
         };
 
         Control.instance().addBlueStateListen(m_blueManagerStateListen);
-
         Control.instance().connectBlue();
     }
 

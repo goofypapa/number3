@@ -106,4 +106,10 @@ public class DownLoadFile {
         }).start();
     }
 
+
+    boolean compare( String p_url, String p_path )
+    {
+        return m_url.equals(p_url) && m_path.equals(p_path);
+    }
+
 }

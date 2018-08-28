@@ -28,6 +28,7 @@ public class Control {
 
     private DataBase m_dataBase;
 
+    private ArrayList<DBAudioInfo> m_fristDownloadQueue;
     private ArrayList<DBAudioInfo> m_downloadQueue;
     private ArrayList<DBImageInfo> m_ImageDownloadQueue;
 
@@ -93,11 +94,10 @@ public class Control {
             }
 
             @Override
-            public void onScan( String p_code )
+            public void onScan( int p_code )
             {
                 try {
-                    int t_id = Integer.parseInt(p_code);
-                    m_this.onScan(t_id);
+                    m_this.onScan( p_code );
                 }catch (Exception e){
 
                 }
@@ -108,6 +108,7 @@ public class Control {
 
 //        m_dataBase.clearDataBase();
 
+        m_fristDownloadQueue = new ArrayList<>();
         m_downloadQueue = new ArrayList<>();
         m_ImageDownloadQueue = new ArrayList<>();
 
@@ -546,7 +547,7 @@ public class Control {
 
     public boolean needDownload()
     {
-        return m_downloadQueue.size() > 0;
+        return m_fristDownloadQueue.size() > 0 || m_downloadQueue.size() > 0;
     }
 
     public void downloadFiles()
@@ -559,10 +560,16 @@ public class Control {
 
         Log.d("DEBUG", "download file start");
 
+        while( m_fristDownloadQueue.size() > 0 )
+        {
+            m_downloadQueue.add( 0, m_fristDownloadQueue.get(0) );
+            m_fristDownloadQueue.remove(0);
+        }
+
         while( m_downloadQueue.size() > 0 )
         {
             DBAudioInfo t_DBAudioInfo = m_downloadQueue.get(0);
-            m_downloadQueue.remove(t_DBAudioInfo);
+            m_downloadQueue.remove(0);
 
             String t_dir = m_audioPath + t_DBAudioInfo.cardId;
             File t_file = new File(t_dir);
@@ -580,9 +587,25 @@ public class Control {
             String[] t_list = t_path.split("/");
             String t_fileName = t_list[t_list.length - 1];
 
-            Log.d("DEBUG", "download file: " + sm_serviceHost + t_path );
-
             t_DBAudioInfo.path = t_dir + "/" + t_fileName;
+
+            boolean t_needDownload = true;
+
+            for( DownLoadFile item : UIUpdateActivity.m_instance.m_downloadQueue )
+            {
+                if( item.compare( sm_serviceHost + "/" + t_path, t_DBAudioInfo.path ) )
+                {
+                    t_needDownload = false;
+                    break;
+                }
+            }
+
+            if( !t_needDownload )
+            {
+                continue;
+            }
+
+            Log.d("DEBUG", "download file: " + sm_serviceHost + t_path );
 
             UIUpdateActivity.m_instance.m_downloadQueue.add( new DownLoadFile(new DownLoadFileListen() {
 
@@ -727,7 +750,6 @@ public class Control {
 
     private void onScan(final int p_id )
     {
-
         DBCardInfo t_DB_card = null;
 
         //判断本地是否有当前卡片信息
@@ -735,6 +757,8 @@ public class Control {
 
         if( t_DB_card != null && t_DB_card.m_musicPaths.size() > 0 )
         {
+
+            Log.d("debug", "play");
 
             boolean m_existNormalAudio = false;
 
@@ -880,7 +904,6 @@ public class Control {
 
                 try
                 {
-
                     Log.d("DEBUG", "----" + p_str);
 
                     JSONObject t_jsonObject = new JSONObject(p_str);
@@ -896,19 +919,21 @@ public class Control {
                             return;
                         }
 
+                        Log.d("Debug", "t_data.length()" + t_data.length());
+
                         for( int i = 0; i < t_data.length(); ++i ){
                             JSONObject t_animal = t_data.getJSONObject(i);
                             int t_cardId = t_animal.getInt("rfId");
 
                             //判断数据库中是否存在
-                            boolean t_isExist = m_dataBase.getCardById( t_cardId ) != null;
+                            DBCardInfo t_cardInfo = m_dataBase.getCardById( t_cardId );
 
-                            if( t_isExist )
-                            {
-                                continue;
-                            }
+                            Log.d( "Debug", "" + t_cardId + ": " + t_cardInfo.m_activation );
 
-                            Log.d("Debug", "---------");
+//                            if( t_cardInfo != null && t_cardInfo.m_activation )
+//                            {
+//                                continue;
+//                            }
 
                             String t_resourceId = t_animal.getString("resourceId");
                             String t_groupId = t_animal.getString("ownerId");
@@ -920,7 +945,14 @@ public class Control {
                                     String t_url = t_musics.getJSONObject(k).getString("attUrl");
                                     String t_md5 = t_musics.getJSONObject(k).getString("md5");
 
-                                    m_downloadQueue.add(new DBAudioInfo(t_md5, t_cardId, t_url, 1));
+                                    DBAudioInfo t_audioInfo = new DBAudioInfo(t_md5, t_cardId, t_url, 1);
+
+                                    if( t_cardId == p_id && k == 0 )
+                                    {
+                                        m_fristDownloadQueue.add( t_audioInfo );
+                                    }else {
+                                        m_downloadQueue.add( t_audioInfo );
+                                    }
                                 }
                             }
 
@@ -932,7 +964,15 @@ public class Control {
                                 if (t_pronAudios != null && t_pronAudios.getString("attUrl") != "") {
                                     String t_url = t_pronAudios.getString("attUrl");
                                     String t_md5 = t_pronAudios.getString("md5");
-                                    m_downloadQueue.add(new DBAudioInfo( t_md5, t_cardId, t_url, 2 ));
+
+                                    DBAudioInfo t_audioInfo = new DBAudioInfo(t_md5, t_cardId, t_url, 2);
+
+                                    if( t_cardId == p_id )
+                                    {
+                                        m_fristDownloadQueue.add( t_audioInfo );
+                                    }else {
+                                        m_downloadQueue.add(t_audioInfo);
+                                    }
                                 }
                             }
 
@@ -942,8 +982,26 @@ public class Control {
                                 {
                                     String t_url = t_descAudios.getString("attUrl");
                                     String t_md5 = t_descAudios.getString("md5");
-                                    m_downloadQueue.add(new DBAudioInfo( t_md5, t_cardId, t_url, 2 ));
+
+                                    DBAudioInfo t_audioInfo = new DBAudioInfo(t_md5, t_cardId, t_url, 2);
+
+                                    if( t_cardId == p_id )
+                                    {
+                                        m_fristDownloadQueue.add( t_audioInfo );
+                                    }else {
+                                        m_downloadQueue.add(t_audioInfo);
+                                    }
                                 }
+                            }
+
+                            t_cardInfo.m_activation = true;
+                            m_dataBase.update( t_cardInfo );
+
+                            DBBatchInfo t_batch = m_dataBase.getBatchInfo( t_cardInfo.m_group );
+                            if( !t_batch.m_activation )
+                            {
+                                t_batch.m_activation = true;
+                                m_dataBase.update( t_batch );
                             }
 
 

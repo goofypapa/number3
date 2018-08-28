@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'goofypapa'
+            keyPassword 'goofypapa'
+            storeFile file('/Users/benbaba/Project/ dadpat.jks')
+            storePassword 'goofypapa'
+        }
+    }
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.dadpat.goofypapa.dadpat"
@@ -16,6 +24,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '27.0.3'
 }
 
 dependencies {

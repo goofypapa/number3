@@ -48,7 +48,7 @@ public class UIWebViewActivity extends AppCompatActivity {
         ws.setGeolocationEnabled(true);// 启用地理定位
         ws.setGeolocationDatabasePath("/data/data/org.itri.html5webview/databases/");// 设置定位的数据库路径
         ws.setDomStorageEnabled(true);
-
+        ws.setAllowFileAccess( true );
 
         ws.setNeedInitialFocus(false);
 
@@ -57,7 +57,7 @@ public class UIWebViewActivity extends AppCompatActivity {
         ws.setLoadsImagesAutomatically(true);//自动加载图片
 
 
-        m_vm_main.loadUrl("http://www.dadpat.com/dist/dadpat01/details.html?resourceId=" + s_animalId);
+        m_vm_main.loadUrl("http://www.dadpat.com/dist/dadpat/details.html?resourceId=" + s_animalId);
 
         m_vm_main.addJavascriptInterface( this, "goofyPapa" );
 

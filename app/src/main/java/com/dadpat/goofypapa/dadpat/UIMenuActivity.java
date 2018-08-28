@@ -47,7 +47,7 @@ public class UIMenuActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onScan(String p_code) {
+            public void onScan(int p_code) {
 
             }
         };
