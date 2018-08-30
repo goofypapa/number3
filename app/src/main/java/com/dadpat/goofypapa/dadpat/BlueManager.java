@@ -163,6 +163,13 @@ public class BlueManager extends Object {
                     switch (t_device.getBondState()) {
                         case BluetoothDevice.BOND_BONDING://正在配对
                             Log.d("DEBUG",  "正在配对......" );
+
+                            try {
+                                m_bluetoothDevice.setPairingConfirmation( true );
+                            }catch (Exception e)
+                            {
+
+                            }
                             break;
                         case BluetoothDevice.BOND_BONDED://配对结束
                             setBlueState(3);
@@ -314,6 +321,7 @@ public class BlueManager extends Object {
         {
             return;
         }
+
         m_bluetoothDevice.createBond();
     }
 
