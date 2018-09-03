@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
+import static android.support.v4.app.ActivityCompat.startActivityForResult;
+
 /**
  * Created by Lenovo on 2018/3/22.
  */
@@ -62,7 +64,7 @@ public class BlueManager extends Object {
 
         Log.d("BlueState", "" + m_blueState);
 
-        if( p_state != 0 ) connect();
+        if( p_state > 0 ) connect();
     }
 
     public BlueManager( Context p_context )
@@ -112,6 +114,11 @@ public class BlueManager extends Object {
 
 
                 }
+
+                if( t_str.contains("创建Socket失败") || t_str.contains("连接Socket失败") || t_str.contains("获取流异常") )
+                {
+                    setBlueState( -1 );
+                }
                 
                 Log.d("DEBUG", t_str);
             }
@@ -150,6 +157,7 @@ public class BlueManager extends Object {
                         }
                     }catch (Exception e){
                         Log.d("DEBUG", "检测到异常" + e.toString());
+                        setBlueState(-1);
                     }
 
                 }
@@ -178,6 +186,7 @@ public class BlueManager extends Object {
                             break;
                         case BluetoothDevice.BOND_NONE://取消配对/未配对
                             Log.d("DEBUG", "取消配对" );
+                            setBlueState(-1);
                         default:
                             break;
                     }
@@ -190,6 +199,7 @@ public class BlueManager extends Object {
 
                     if( m_bluetoothDevice == null ){
                         Log.d("DEBUG", "没有找到设备");
+                        setBlueState(-1);
                     }
                 }
 
@@ -210,7 +220,7 @@ public class BlueManager extends Object {
                             Log.d("DEBUG", "正在关闭蓝牙");
                             break;
                         case BluetoothAdapter.STATE_OFF:
-                            setBlueState(0);
+                            setBlueState(-1);
                             Log.d("DEBUG", "蓝牙已关闭");
                             break;
                     }
@@ -239,9 +249,19 @@ public class BlueManager extends Object {
         return m_blueState == 100;
     }
 
+    public boolean deviceIsOpen()
+    {
+        return m_blueState > 0;
+    }
 
     public void connect()
     {
+
+        if( m_blueState < 0 )
+        {
+            m_blueState = 0;
+        }
+
         switch (m_blueState)
         {
             case 0:
@@ -277,7 +297,10 @@ public class BlueManager extends Object {
             setBlueState(1);
             return;
         }
-        m_blueToolThAdapter.enable();
+//        m_blueToolThAdapter.enable();
+
+        // 请求打开 Bluetooth
+
     }
 
     private void closeDevice()
@@ -449,14 +472,14 @@ public class BlueManager extends Object {
             Log.d("DEBUG", "连接a2dp成功");
 
             //连接成功
-            if( m_blueState != 0 ) {
+            if( m_blueState > 0 ) {
                 setBlueState(100);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             Log.d("DEBUG", "连接a2dp失败" + e.toString());
-            setBlueState(0);
+            setBlueState(-1);
         }
     }
 

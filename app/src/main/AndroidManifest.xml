@@ -6,20 +6,18 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!--拍照-->
+    <!-- 拍照 -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <!--读写文件-->
+    <!-- 读写文件 -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-    <!--蓝牙权限-->
+    <!-- 蓝牙权限 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-
-
 
     <application
         android:allowBackup="true"
@@ -40,8 +38,7 @@
         <activity
             android:name=".UIMenuActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme">
-        </activity>
+            android:theme="@style/AppTheme" />
         <activity
             android:name=".UICardListActivity"
             android:screenOrientation="portrait"
@@ -63,13 +60,16 @@
             android:name=".UIUpdateActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
 
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+
+
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
 
         </activity>
+        <activity android:name=".UIUniversalCardActivity"></activity>
     </application>
 
 </manifest>

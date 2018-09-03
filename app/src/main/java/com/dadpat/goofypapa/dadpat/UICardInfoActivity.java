@@ -24,6 +24,7 @@ public class UICardInfoActivity extends AppCompatActivity {
     private DataBase m_dataBase;
 
     private Intent m_toWebView;
+    private Intent m_toUniversal;
 
     private TableLayout m_tlCardList;
 
@@ -109,9 +110,17 @@ public class UICardInfoActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         CardRelativeLayout t_cardRelativeLayout = (CardRelativeLayout)v;
-                        UIWebViewActivity.s_animalId = t_cardRelativeLayout.cradId;
-                        startActivity(m_toWebView);
 
+                        DBCardInfo t_cardInfo = m_dataBase.getCardById( t_cardRelativeLayout.cradId );
+
+                        if( t_cardInfo.m_activation )
+                        {
+                            UIWebViewActivity.s_animalId = t_cardRelativeLayout.cradId;
+                            startActivity(m_toWebView);
+                        }else{
+                            UIUniversalCardActivity.s_cardId = t_cardRelativeLayout.cradId;
+                            startActivity(m_toUniversal);
+                        }
                     }
                 });
 
@@ -158,6 +167,7 @@ public class UICardInfoActivity extends AppCompatActivity {
 
 
         m_toWebView = new Intent(this, UIWebViewActivity.class);
+        m_toUniversal = new Intent( this, UIUniversalCardActivity.class );
 
 
         m_imgBack.setOnClickListener(new View.OnClickListener() {

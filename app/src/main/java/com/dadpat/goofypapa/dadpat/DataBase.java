@@ -307,22 +307,35 @@ public class DataBase extends SQLiteOpenHelper {
 
     public DBCardInfo getCardById(int p_cardId )
     {
-        DBCardInfo t_result = null;
-
         Cursor cursor = m_db.query(TABLE_ANIMAL, null, "cardId = " + p_cardId, null, null, null, "cardId");
 
-        if (cursor.moveToFirst() && !cursor.isAfterLast() ) {
+        return _getCardById( cursor );
+    }
 
-            int t_cardId = cursor.getInt(0);
-            String t_serviceId = cursor.getString(1);
-            String t_coverImage = cursor.getString(2);
-            String t_lineDrawing = cursor.getString(3);
-            boolean t_activation = cursor.getInt(4) == 1;
-            String t_groupId = cursor.getString(5);
+    public DBCardInfo getCardById( String p_cardId )
+    {
+
+        Cursor cursor = m_db.query(TABLE_ANIMAL, null, "serviceId = \"" + p_cardId + "\"", null, null, null, "cardId");
+
+        return _getCardById( cursor );
+    }
+
+    private DBCardInfo _getCardById( Cursor p_cursor )
+    {
+        DBCardInfo t_result = null;
+
+        if (p_cursor.moveToFirst() && !p_cursor.isAfterLast() ) {
+
+            int t_cardId = p_cursor.getInt(0);
+            String t_serviceId = p_cursor.getString(1);
+            String t_coverImage = p_cursor.getString(2);
+            String t_lineDrawing = p_cursor.getString(3);
+            boolean t_activation = p_cursor.getInt(4) == 1;
+            String t_groupId = p_cursor.getString(5);
 
             ArrayList<DBAudioInfo> t_audioList = new ArrayList<DBAudioInfo>();
 
-            Cursor t_audios_cursor = m_db.query(TABLE_AUDIOS, null, "cardId = " + p_cardId, null, null, null, null);
+            Cursor t_audios_cursor = m_db.query(TABLE_AUDIOS, null, "cardId = " + t_cardId, null, null, null, null);
 
             if( t_audios_cursor.moveToFirst() )
             {
@@ -337,7 +350,7 @@ public class DataBase extends SQLiteOpenHelper {
 
             t_result = new DBCardInfo( t_cardId, t_serviceId, t_groupId, t_coverImage, t_lineDrawing, t_activation, t_audioList );
         }
-        cursor.close();
+        p_cursor.close();
 
         return t_result;
     }
@@ -376,6 +389,25 @@ public class DataBase extends SQLiteOpenHelper {
         cursor.close();
 
         return t_result;
+    }
+
+    public DBAudioInfo getAudio( String p_md5 )
+    {
+        DBAudioInfo t_result = null;
+
+        String t_columns[] = { "md5", "cardId", "path", "audioType" };
+
+        Cursor cursor = m_db.query(TABLE_AUDIOS, t_columns, "md5=?", new String[]{p_md5}, null, null, null);
+
+        if(cursor.moveToFirst() && !cursor.isAfterLast())
+        {
+            t_result = new DBAudioInfo( cursor.getString(0), cursor.getInt(1), cursor.getString(2), cursor.getInt(3) );
+        }
+
+        cursor.close();
+
+        return t_result;
+
     }
 
     public ArrayList<DBBatchInfo> getBatchList()

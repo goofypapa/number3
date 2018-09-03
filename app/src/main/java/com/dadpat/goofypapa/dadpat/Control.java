@@ -282,11 +282,16 @@ public class Control {
                                             }
 
                                             if (t_oldDBAudioInfo == null) {
-                                                m_downloadQueue.add(t_DBAudioInfo);
 
-                                                Message t_message = new Message();
-                                                t_message.obj = "null-download: " + t_DBAudioInfo.path;
-                                                m_handler.sendMessage(t_message);
+                                                if( m_dataBase.getAudio( t_DBAudioInfo.md5 ) == null ) {
+
+                                                    m_downloadQueue.add(t_DBAudioInfo);
+
+                                                    Message t_message = new Message();
+                                                    t_message.obj = "null-download: " + t_DBAudioInfo.path;
+                                                    m_handler.sendMessage(t_message);
+                                                }
+
                                             } else {
                                                 if (t_oldDBAudioInfo.audioType != t_oldDBAudioInfo.audioType) {
                                                     m_dataBase.update(t_DBAudioInfo);
@@ -1054,6 +1059,11 @@ public class Control {
        }
 
        return false;
+    }
+
+    public boolean isBlueOpen()
+    {
+        return m_blueManager.deviceIsOpen();
     }
 
     //删除文件夹和文件夹里面的文件
