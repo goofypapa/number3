@@ -210,24 +210,6 @@ public class UIMenuActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // TODO Auto-generated method stub
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-                Log.d( "--------->", "开启蓝牙" );
-
-                Message t_message = new Message();
-                t_message.obj = "toSearch";
-                m_handler.sendMessage(t_message);
-            } else if (resultCode == RESULT_CANCELED) {
-                Log.d( "--------->", "不允许开启蓝牙" );
-            }
-        }
-
-    }
-
     void connectStateChanged()
     {
         if(Control.instance().isDeviceConnected())
@@ -240,11 +222,6 @@ public class UIMenuActivity extends AppCompatActivity {
 
     private void openBlueDevice()
     {
-        if( !Control.instance().isBlueOpen() ) {
-            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(intent, 1);
-            return;
-        }
         startActivity(m_toBlueSearch);
     }
 }

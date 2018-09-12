@@ -1,5 +1,8 @@
 package com.dadpat.goofypapa.dadpat;
 
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,7 +30,6 @@ public class BlueSearchActivity extends AppCompatActivity {
             }
         });
 
-
         m_blueManagerStateListen = new BlueManagerStateListen() {
             @Override
             public void onStateChange(int p_state) {
@@ -52,6 +54,11 @@ public class BlueSearchActivity extends AppCompatActivity {
 
         Control.instance().addBlueStateListen(m_blueManagerStateListen);
         Control.instance().connectBlue();
+
+        if( !Control.instance().isBlueOpen() ) {
+            Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(intent, 1);
+        }
     }
 
     @Override
@@ -59,5 +66,21 @@ public class BlueSearchActivity extends AppCompatActivity {
     {
         super.onDestroy();
         Control.instance().deleteBlueStateListen(m_blueManagerStateListen);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // TODO Auto-generated method stub
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                Log.d( "--------->", "开启蓝牙" );
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d( "--------->", "不允许开启蓝牙" );
+                finish();
+            }
+        }
+
     }
 }

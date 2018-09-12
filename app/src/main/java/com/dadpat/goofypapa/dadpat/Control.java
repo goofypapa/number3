@@ -416,6 +416,7 @@ public class Control {
 
                     Boolean t_success = t_json.getBoolean("success");
 
+
                     //读取数据失败
                     if(!t_success)
                     {
@@ -423,7 +424,6 @@ public class Control {
                     }
 
                     JSONArray t_data = t_json.getJSONArray("data");
-
 
                     for( int i = 0; i < t_data.length(); ++i )
                     {
@@ -492,6 +492,7 @@ public class Control {
                             m_dataBase.update(t_batch);
                         }
                     }
+
 
                 }catch (Exception e)
                 {
