@@ -7,6 +7,7 @@ import android.os.Message;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -68,12 +69,21 @@ public class DownLoadFile {
 
                 try {
                     URL t_url = new URL(m_url);
-                    URLConnection t_conn = t_url.openConnection();
+                    HttpURLConnection t_conn = (HttpURLConnection)t_url.openConnection();
+
+                    InputStream t_is = t_conn.getInputStream();
+                    while( t_conn.getResponseCode() == 302 ){
+                        String newUrl = t_conn.getHeaderField("Location");
+                        if( t_url.equals(newUrl) )return;
+                        t_url = new URL( newUrl );
+                        t_conn = (HttpURLConnection)t_url.openConnection();
+                        t_is = t_conn.getInputStream();
+                    }
 
                     int t_contentLength = t_conn.getContentLength();
                     int t_currDownloadSize = 0;
 
-                    InputStream t_is = t_conn.getInputStream();
+
 
                     byte[] t_bs = new byte[1024];
 

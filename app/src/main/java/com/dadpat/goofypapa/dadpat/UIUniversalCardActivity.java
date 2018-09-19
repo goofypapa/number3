@@ -34,7 +34,7 @@ public class UIUniversalCardActivity extends AppCompatActivity implements View.O
     static String s_cardId;
     private ImageView m_imgBack;
     private ImageView m_imgSimpleLineDrawing;
-    private Button m_btn_photograph;
+    private ImageView m_imgTakePicture;
     private Uri imageUri;
 
     private DataBase m_dataBase;
@@ -49,7 +49,7 @@ public class UIUniversalCardActivity extends AppCompatActivity implements View.O
 
         m_imgBack  = findViewById(R.id.img_back);
         m_imgSimpleLineDrawing = findViewById( R.id.imgSimpleLineDrawing );
-        m_btn_photograph = findViewById( R.id.btn_photograph );
+        m_imgTakePicture = findViewById( R.id.imgTakePicture );
 
         m_imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,7 +58,7 @@ public class UIUniversalCardActivity extends AppCompatActivity implements View.O
             }
         });
 
-        m_btn_photograph.setOnClickListener(this);
+        m_imgTakePicture.setOnClickListener(this);
 
 
         DBCardInfo t_cardInfo = m_dataBase.getCardById( s_cardId );
@@ -102,6 +102,9 @@ public class UIUniversalCardActivity extends AppCompatActivity implements View.O
                     try {
                         Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver()
                                 .openInputStream(imageUri));
+
+                        //上传图片
+
                         m_imgSimpleLineDrawing.setImageBitmap(bitmap);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();

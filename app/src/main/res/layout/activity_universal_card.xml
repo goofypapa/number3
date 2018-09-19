@@ -7,27 +7,16 @@
     tools:context=".UIUniversalCardActivity">
 
     <ImageView
-        android:id="@+id/iv_bg"
+        android:id="@+id/imgUniversalBg"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:src="@color/goofyPapaGreen"
+        android:contentDescription="@string/app_name"
+        android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <ImageView
-        android:id="@+id/imgSimpleLineDrawing"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/app_name"
-        app:layout_constraintBottom_toTopOf="@+id/btn_photograph"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/card_group_cover_loding" />
+        app:srcCompat="@mipmap/universal_bg" />
 
     <ImageView
         android:id="@+id/img_back"
@@ -40,15 +29,55 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/goback" />
 
-    <Button
-        android:id="@+id/btn_photograph"
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/universalTitle"
+        android:textColor="@color/goofyPapaWhite"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/universalTitle" />
+
+    <ImageView
+        android:id="@+id/imgTakePicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@mipmap/universal_button_take_picture" />
+
+    <ImageView
+        android:id="@+id/imgRoundBg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:text="拍照"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/universal_round" />
+
+    <ImageView
+        android:id="@+id/imgSimpleLineDrawing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toBottomOf="@+id/imgRoundBg"
+        app:layout_constraintEnd_toEndOf="@+id/imgRoundBg"
+        app:layout_constraintStart_toStartOf="@+id/imgRoundBg"
+        app:layout_constraintTop_toTopOf="@+id/imgRoundBg"
+        app:srcCompat="@mipmap/goback" />
+
 </android.support.constraint.ConstraintLayout>
