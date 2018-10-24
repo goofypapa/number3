@@ -183,12 +183,13 @@ public class Control {
                                 }
 
                                 if( t_cardObject.getString("descAudio") != "null" ) {
-                                    JSONObject t_descAudios = t_cardObject.getJSONObject("descAudio");
-                                    if( t_descAudios != null && t_descAudios.getString("attUrl") != "" )
-                                    {
-                                        String t_url = t_descAudios.getString("attUrl");
-                                        String t_md5 = t_descAudios.getString("md5");
-                                        t_DBAudioInfos.add(new DBAudioInfo( t_md5, t_rfid, t_url, 2 ));
+
+                                    JSONArray t_descAudios = t_cardObject.getJSONArray("descAudio");
+                                    for (int k = 0; k < t_descAudios.length(); ++k) {
+                                        String t_url = t_descAudios.getJSONObject(k).getString("attUrl");
+                                        String t_md5 = t_descAudios.getJSONObject(k).getString("md5");
+
+                                        t_DBAudioInfos.add(new DBAudioInfo(t_md5, t_rfid, t_url, 2));
                                     }
                                 }
 
@@ -853,10 +854,10 @@ public class Control {
 
             }else {
 
-                if( m_soloMediaPlayer != null && m_soloMediaPlayer.isPlaying())
-                {
-                    m_soloMediaPlayer.stop();
-                }
+//                if( m_soloMediaPlayer != null && m_soloMediaPlayer.isPlaying())
+//                {
+//                    m_soloMediaPlayer.stop();
+//                }
 
                 //选择播放器
                 t_mediaPlayer = m_mediaPlayerList.get(m_mediaPlayerIndex);
@@ -983,19 +984,20 @@ public class Control {
                             }
 
                             if( !t_animal.getString("descAudio").equals("null") ) {
-                                JSONObject t_descAudios = t_animal.getJSONObject("descAudio");
-                                if( t_descAudios != null && t_descAudios.getString("attUrl") != "" )
-                                {
-                                    String t_url = t_descAudios.getString("attUrl");
-                                    String t_md5 = t_descAudios.getString("md5");
+
+
+                                JSONArray t_descAudios = t_animal.getJSONArray("descAudio");
+                                for (int k = 0; k < t_descAudios.length(); ++k) {
+                                    String t_url = t_descAudios.getJSONObject(k).getString("attUrl");
+                                    String t_md5 = t_descAudios.getJSONObject(k).getString("md5");
 
                                     DBAudioInfo t_audioInfo = new DBAudioInfo(t_md5, t_cardId, t_url, 2);
 
-                                    if( t_cardId == p_id )
+                                    if( t_cardId == p_id && k == 0 )
                                     {
                                         m_fristDownloadQueue.add( t_audioInfo );
                                     }else {
-                                        m_downloadQueue.add(t_audioInfo);
+                                        m_downloadQueue.add( t_audioInfo );
                                     }
                                 }
                             }

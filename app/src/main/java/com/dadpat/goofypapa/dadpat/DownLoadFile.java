@@ -77,6 +77,7 @@ public class DownLoadFile {
                         if( t_url.equals(newUrl) )return;
                         t_url = new URL( newUrl );
                         t_conn = (HttpURLConnection)t_url.openConnection();
+                        t_is.close();
                         t_is = t_conn.getInputStream();
                     }
 
